@@ -10,7 +10,16 @@ Explorador 3D do Universo em cinco escalas. Arraste para girar, role (ou pince) 
 | **Via Láctea** | Galáxia em ~60 mil partículas, Sol, nebulosas, pulsar, **Sagitário A\*** e Cygnus X-1 (buracos negros com disco e lente gravitacional em shader) |
 | **Grupo Local** | Andrômeda, Triângulo, Nuvens de Magalhães, M81, Centaurus A, M51, Sombreiro e **M87\*** com jato |
 
-Atalhos: `/` (ou `Ctrl+K`) abre a busca "Explorar", `1`–`4` trocam de escala, `←`/`→` astro anterior/próximo, `Espaço` pausa, `Esc` volta à visão geral.
+## Recursos
+
+- **Links diretos:** cada escala e astro tem URL própria (`#/solar/saturno`, `#/galaxy/sgra`), com título dinâmico e botão de compartilhar. Metadados Open Graph e imagem de pré-visualização (`public/og.png`) para redes sociais.
+- **Aba "Brincar":** quanto você pesaria, sua idade e quanto tempo levaria para chegar em cada astro (a pé, de carro, de avião, na velocidade da Voyager 1 e da luz).
+- **Tour guiado:** visita narrada (voz opcional, via síntese do navegador) por 17 paradas, do James Webb ao Grupo Local.
+- **Modo "Hoje":** posições reais dos planetas e da Lua (biblioteca [Astronomy Engine](https://github.com/cosinekitty/astronomy)), com órbitas elípticas reais e viagem no tempo entre 1900 e 2100. O pacote é carregado só quando o modo é ligado. Ceres, Éris e Halley seguem movimento real, mas com posição aproximada.
+- **Sondas:** Voyager 1 e 2, New Horizons (posições aproximadas em nov/2026, afastando-se em linha reta) e Juno em órbita de Júpiter.
+- **Créditos e licenças** em uma janela própria (botão ⓘ).
+
+Atalhos: `/` (ou `Ctrl+K`) abre a busca "Explorar", `1`–`4` trocam de escala, `←`/`→` astro anterior/próximo, `Espaço` pausa, `Esc` volta à visão geral (ou encerra o tour).
 
 ## Rodar
 

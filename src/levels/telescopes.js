@@ -23,7 +23,7 @@ function ellipseLine(a, ecc, color, opacity) {
 }
 
 // Modelos simples dos satélites (não são réplicas fiéis, só dão a silhueta de cada tipo)
-function satModel(type, color) {
+export function satModel(type, color) {
   const g = new THREE.Group();
   const metal = (c) => new THREE.MeshStandardMaterial({ color: c, metalness: 0.6, roughness: 0.4, emissive: new THREE.Color(c).multiplyScalar(0.12) });
   const panel = new THREE.MeshStandardMaterial({ color: 0x1d3a78, metalness: 0.3, roughness: 0.5, emissive: 0x0a1a3a });
@@ -38,6 +38,11 @@ function satModel(type, color) {
     add(cyl, metal(0xc8ccd8), [0, 0, 0], [0.32, 1.7, 0.32], [0, 0, Math.PI / 2]);
     add(box, panel, [0, 0.55, 0], [0.5, 0.02, 0.9]);
     add(box, panel, [0, -0.55, 0], [0.5, 0.02, 0.9]);
+  } else if (type === 'voyager') { // antena parabólica, mastro com instrumentos e gerador (RTG)
+    add(cyl, metal(0xe9e9f0), [0, 0.1, 0], [0.9, 0.06, 0.9]);
+    add(box, metal(0xb9a46a), [0, -0.05, 0], [0.5, 0.35, 0.5]);
+    add(cyl, metal(0x6a707d), [1.05, 0, 0], [0.04, 1.6, 0.04], [0, 0, Math.PI / 2]);
+    add(cyl, metal(0x4a4f5a), [-0.85, -0.05, 0], [0.1, 0.9, 0.1], [0, 0, Math.PI / 2]);
   } else if (type === 'xray') {
     add(cyl, metal(0xd9d2f0), [0, 0, 0], [0.22, 2.0, 0.22], [0, 0, Math.PI / 2]);
     add(box, panel, [0.2, 0, 0.55], [0.8, 0.02, 0.5]);

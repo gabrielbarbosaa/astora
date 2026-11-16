@@ -4,6 +4,7 @@ import { textureFor, moonTexture, ringTexture, glowTexture, dotTexture } from '.
 import { circle, makeMarker, pickMesh, addSatellites, pointsMaterial } from '../engine/helpers.js';
 import { createEarth } from '../earth.js';
 import { upgradeFor, ringMap } from '../planetMaps.js';
+import { satModel } from './telescopes.js';
 
 // ---- Escala ---------------------------------------------------------------
 // Distâncias (UA) e diâmetros (km) são proporcionais entre si. O Sol é desenhado menor que o real.
@@ -89,6 +90,27 @@ export function buildSolar() {
       continue;
     }
 
+    // Sondas que saíram do Sistema Solar (Voyager, New Horizons): posição aproximada ao longo de uma direção fixa
+    if (d.probe) {
+      const P = d.probe, s = 0.5, lon = (P.lon * Math.PI) / 180, lat = (P.lat * Math.PI) / 180;
+      const dir = new THREE.Vector3(Math.cos(lat) * Math.cos(lon), Math.sin(lat), -Math.cos(lat) * Math.sin(lon));
+      const holder = new THREE.Group();
+      group.add(holder);
+      const model = satModel('voyager', d.color);
+      model.scale.setScalar(s);
+      holder.add(model);
+      const mesh = pickMesh(s * 1.8, d.id);
+      holder.add(mesh);
+      const mk = makeMarker(dotTex, d.color, 0.014);
+      mk.userData.id = d.id;
+      holder.add(mk);
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), dir]), new THREE.LineBasicMaterial({ color: d.color, transparent: true, opacity: 0.35, depthWrite: false }));
+      group.add(line);
+      const e = { data: d, R: s * 1.2, mesh, holder, model, marker: mk, markerDist: 25, extent: s * 1.2, parent: null, moons: [], isProbe: true, probeDir: dir, probeLine: line };
+      entries.push(e); planets.push(e); byId[d.id] = e;
+      continue;
+    }
+
     const R = d.visualR ?? (d.star ? SUN_R : radiusOf(d.km));
     const orbit = AU * d.au;
     const pivot = new THREE.Group();          // inclinação do plano orbital
@@ -120,10 +142,11 @@ export function buildSolar() {
       mesh.add(glow);
     }
 
-    const e = { data: d, R, holder, mesh, orbit, ecc: d.ecc ?? 0, period: d.years ? periodOf(d.years) : 0, angle: Math.random() * Math.PI * 2, parent: null, moons: [], moonSystem: null, extent: R };
+    const e = { data: d, R, holder, mesh, pivot, orbit, ecc: d.ecc ?? 0, period: d.years ? periodOf(d.years) : 0, angle: Math.random() * Math.PI * 2, parent: null, moons: [], moonSystem: null, extent: R };
     if (d.au) {
       const line = d.ecc ? ellipseLine(orbit, d.ecc) : circle(orbit, 0x5f7fb8, 0.28, 360);
       pivot.add(line); orbitLines.push(line);
+      e.simLine = line;
     }
     if (d.au || d.star) {
       const mk = makeMarker(dotTex, d.color, d.star ? 0.03 : 0.012);
@@ -169,23 +192,111 @@ export function buildSolar() {
   }
   for (const e of entries) if (e.orbit || e.isMoon) place(e);
 
+  // ---- Modo "Hoje": posições reais dos planetas (Astronomy Engine, carregado só quando ativado) ----
+  const real = { on: false, date: new Date(), Astro: null };
+  const BODY = { mercurio: 'Mercury', venus: 'Venus', terra: 'Earth', marte: 'Mars', jupiter: 'Jupiter', saturno: 'Saturn', urano: 'Uranus', netuno: 'Neptune', plutao: 'Pluto' };
+  const cE = Math.cos((23.4392911 * Math.PI) / 180), sE = Math.sin((23.4392911 * Math.PI) / 180);
+  const HALLEY_T0 = Date.UTC(1986, 1, 9), HALLEY_P = 75.32 * 365.25 * 86400000; // periélio de 1986
+  const PROBE_T0 = Date.UTC(2026, 10, 16);                                        // data de referência das sondas
+  const realBodies = entries.filter((e) => BODY[e.data.id]);
+  const moonE = byId.lua;
+  const realLines = [];
+  let orbitsOn = true;
+  // vetor equatorial J2000 (UA) -> cena (eclíptica: x, y = norte, z = -y_ecl)
+  const toScene = (v, k, out) => out.set(v.x * k, (-v.y * sE + v.z * cE) * k, -(v.y * cE + v.z * sE) * k);
+  const safeVec = (body, date) => { try { return real.Astro.HelioVector(body, date); } catch { return null; } };
+
+  function applyOrbitVisibility() {
+    for (const e of entries) if (e.simLine) e.simLine.visible = orbitsOn && !(real.on && e.realDriven);
+    for (const l of realLines) l.visible = orbitsOn && real.on;
+  }
+  function buildRealLines() { // elipses reais: uma volta completa em torno da data atual
+    for (const l of realLines) { group.remove(l); l.geometry.dispose(); }
+    realLines.length = 0;
+    const A = real.Astro;
+    for (const e of realBodies) {
+      const body = A.Body[BODY[e.data.id]], P = A.PlanetOrbitalPeriod(body), pts = [];
+      for (let i = 0; i < 240; i++) {
+        const v = safeVec(body, new Date(real.date.getTime() + (i / 240 - 0.5) * P * 86400000));
+        if (!v) { pts.length = 0; break; }
+        pts.push(toScene(v, AU, new THREE.Vector3()));
+      }
+      if (pts.length < 100) continue;
+      const line = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x5f7fb8, transparent: true, opacity: 0.28, depthWrite: false }));
+      group.add(line); realLines.push(line);
+    }
+  }
+  const _m = new THREE.Vector3();
+  function applyReal() {
+    const A = real.Astro, d = real.date;
+    for (const e of realBodies) {
+      const v = safeVec(A.Body[BODY[e.data.id]], d);
+      if (v) toScene(v, AU, e.holder.position);
+    }
+    if (moonE) {
+      try {
+        toScene(A.GeoMoon(d), 1, _m).normalize(); // só a direção real da Lua; a distância na cena é estilizada
+        moonE.mesh.position.copy(_m).multiplyScalar(moonE.orbit);
+        moonE.angle = Math.atan2(-_m.z, _m.x);
+      } catch { /* fora do intervalo */ }
+    }
+  }
+  async function setRealTime(on, date) {
+    if (on && !real.Astro) real.Astro = await import('astronomy-engine');
+    real.on = on;
+    if (on) {
+      if (date) real.date = new Date(date);
+      buildRealLines();
+      for (const e of realBodies) { e.pivot.rotation.x = 0; e.realDriven = true; }
+      if (moonE) moonE.realDriven = true;
+      applyReal();
+    } else {
+      for (const e of realBodies) { e.pivot.rotation.x = e.data.tilt; e.realDriven = false; place(e); }
+      if (moonE) { moonE.realDriven = false; place(moonE); }
+    }
+    applyOrbitVisibility();
+  }
+
   return {
     id: 'solar', group, entries, byId, list: bodies,
     home: new THREE.Vector3(0, 700, 1100), target: new THREE.Vector3(),
-    near: 0.02, far: 14000, minDist: 4, maxDist: 3200,
-    setOrbits: (v) => orbitLines.forEach((l) => (l.visible = v)),
+    near: 0.02, far: 14000, minDist: 4, maxDist: 5600,
+    setOrbits: (v) => { orbitsOn = v; applyOrbitVisibility(); },
+    setRealTime,
+    setDate(d) { real.date = new Date(d); if (real.on) applyReal(); },
+    getDate: () => (real.on ? real.date : null),
     activeSystem(p) { for (const e of planets) if (e.moonSystem) e.moonSystem.visible = e === p; },
     update(k, dt, camera) {
+      const dDays = real.on ? k * 10 : 0; // no modo real: 1x = 10 dias por segundo
+      if (real.on) real.date = new Date(real.date.getTime() + dDays * 86400000);
       for (const e of entries) {
         if (e.earthFX) { // o Sol está na origem: a direção até ele é o oposto da posição da Terra
           e.mesh.getWorldPosition(_s);
           e.earthFX.setSun(_s.negate().normalize(), camera);
           e.earthFX.drift(k);
         }
-        if (e.period) { e.angle += (k * Math.PI * 2) / e.period; place(e); }
+        if (e.isProbe) { // sondas: se afastam em linha reta (posição aproximada)
+          const P = e.data.probe;
+          let dist = P.d0, vis = true;
+          if (real.on) {
+            dist = P.d0 + (P.v * (real.date.getTime() - PROBE_T0)) / (365.25 * 86400000);
+            vis = real.date.getTime() >= Date.parse(P.launch) && dist > 6;
+          }
+          e.hide = !vis; e.holder.visible = vis; e.probeLine.visible = vis;
+          e.holder.position.copy(e.probeDir).multiplyScalar(dist * AU);
+          e.probeLine.scale.setScalar(Math.max(dist, 0.01) * AU);
+          e.model.rotation.y += k * 0.2;
+          continue;
+        }
+        if (real.on && !e.isMoon && e.data.years && !e.realDriven) { // Ceres, Éris e Halley: movimento real, posição aproximada
+          if (e.data.id === 'halley') e.angle = (2 * Math.PI * (real.date.getTime() - HALLEY_T0)) / HALLEY_P;
+          else e.angle += (2 * Math.PI * dDays) / (365.25 * e.data.years);
+          place(e);
+        } else if (e.period && !(real.on && e.realDriven)) { e.angle += (k * Math.PI * 2) / e.period; place(e); }
         if (e.isMoon) e.mesh.rotation.y = e.angle + Math.PI; // rotação sincronizada: mesma face para o planeta
         else if (!e.isStatic) e.mesh.rotation.y += k * e.data.spin * 2;
       }
+      if (real.on) applyReal();
       for (const s of spinners) s.rotation.y += k * 0.01;
     },
   };

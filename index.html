@@ -3,16 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="Astora: explore o Sistema Solar em 3D. Arraste, gire e clique nos astros para ver detalhes e curiosidades." />
+    <title>Astora — Explore o Universo em 3D</title>
+    <meta name="description" content="Astora: viaje do Sistema Solar às galáxias em 3D. Veja planetas, luas, telescópios, estrelas e buracos negros, com detalhes e curiosidades." />
     <meta name="theme-color" content="#04060d" />
-    <title>Astora — Sistema Solar em 3D</title>
+    <link rel="canonical" href="https://astora.gabrielbarbosadev.com.br/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Astora" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content="Astora — Explore o Universo em 3D" />
+    <meta property="og:description" content="Do Sistema Solar às galáxias: planetas, luas, telescópios, estrelas e buracos negros em 3D, direto no navegador." />
+    <meta property="og:url" content="https://astora.gabrielbarbosadev.com.br/" />
+    <meta property="og:image" content="https://astora.gabrielbarbosadev.com.br/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Astora — Explore o Universo em 3D" />
+    <meta name="twitter:description" content="Do Sistema Solar às galáxias, em 3D, direto no navegador." />
+    <meta name="twitter:image" content="https://astora.gabrielbarbosadev.com.br/og.png" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%234da3ff'/><circle cx='26' cy='9' r='3' fill='%23ffc857'/></svg>" />
   </head>
   <body>
-    <div id="loader"><div class="ring"></div><p>Preparando o Sistema Solar…</p></div>
-    <canvas id="scene" aria-label="Sistema Solar em 3D"></canvas>
+    <div id="loader"><div class="ring"></div><p>Preparando o Universo…</p></div>
+    <canvas id="scene" aria-label="Universo em 3D"></canvas>
     <div id="labels"></div>
     <div id="fade"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <nav id="levels" class="levels" aria-label="Escala"></nav>
 
     <header class="brand">
@@ -28,6 +43,9 @@
     </aside>
 
     <aside id="panel" class="panel" aria-live="polite" hidden>
+      <button id="share" class="icon-btn share" aria-label="Compartilhar link" title="Compartilhar link">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+      </button>
       <button id="close" class="icon-btn" aria-label="Fechar">×</button>
       <div class="swatch" id="p-swatch"></div>
       <span class="kind" id="p-kind"></span>
@@ -37,10 +55,12 @@
         <button data-tab="about" class="on" role="tab">Sobre</button>
         <button data-tab="data" role="tab">Dados</button>
         <button data-tab="facts" role="tab">Curiosidades</button>
+        <button data-tab="play" role="tab" id="tab-play-btn" hidden>Brincar</button>
       </nav>
       <section id="tab-about"></section>
       <section id="tab-data" hidden></section>
       <section id="tab-facts" hidden></section>
+      <section id="tab-play" hidden></section>
       <div class="goto" id="p-goto"></div>
       <div class="moons" id="p-moons" hidden></div>
       <div class="pn">
@@ -49,20 +69,71 @@
       </div>
     </aside>
 
+    <section id="tour" class="tour" hidden aria-live="polite">
+      <div class="tour-top"><span id="tour-count"></span><span class="tour-title">Tour guiado</span></div>
+      <p id="tour-text"></p>
+      <div class="tour-bar"><i id="tour-progress"></i></div>
+      <div class="tour-btns">
+        <button id="tour-prev" aria-label="Anterior">⏮</button>
+        <button id="tour-pause" aria-label="Pausar">❚❚</button>
+        <button id="tour-next" aria-label="Próximo">⏭</button>
+        <button id="tour-voice" aria-label="Narração" title="Narração em voz alta">🔊</button>
+        <button id="tour-stop" aria-label="Sair do tour">✕ Sair</button>
+      </div>
+    </section>
+
+    <div id="timebar" class="timebar" hidden>
+      <span class="tb-label">Posições reais</span>
+      <input id="t-date" type="date" min="1900-01-01" max="2100-12-31" aria-label="Data" />
+      <button id="t-today">Hoje</button>
+      <select id="t-presets" aria-label="Datas famosas">
+        <option value="">Datas famosas…</option>
+        <option value="1969-07-20">1969 · Apollo 11 pousa na Lua</option>
+        <option value="1977-09-05">1977 · Lançamento da Voyager 1</option>
+        <option value="1986-02-09">1986 · Halley no periélio</option>
+        <option value="2015-07-14">2015 · New Horizons passa por Plutão</option>
+        <option value="2024-04-08">2024 · Eclipse total nos EUA</option>
+        <option value="2061-07-28">2061 · Halley volta</option>
+      </select>
+    </div>
+
     <footer class="dock">
-      <button id="explore" class="explore" aria-expanded="false" aria-controls="drawer">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        Explorar <kbd>/</kbd>
-      </button>
+      <div class="left">
+        <button id="explore" class="explore" aria-expanded="false" aria-controls="drawer">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          Explorar <kbd>/</kbd>
+        </button>
+        <button id="tour-btn" class="explore alt">▶ Tour</button>
+      </div>
       <div class="controls">
+        <button id="today" title="Mostrar as posições reais dos planetas, com viagem no tempo" hidden>Hoje</button>
         <button id="home" title="Visão geral">⌂ Visão geral</button>
         <button id="orbits" class="on" title="Mostrar órbitas">Órbitas</button>
         <button id="pause" title="Pausar">❚❚</button>
         <label class="speed">Velocidade
           <input id="speed" type="range" min="0" max="8" step="0.05" value="1" />
         </label>
+        <button id="credits-btn" title="Créditos e licenças" aria-label="Créditos e licenças">ⓘ</button>
       </div>
     </footer>
+
+    <dialog id="credits" class="credits">
+      <button class="icon-btn" id="credits-close" aria-label="Fechar">×</button>
+      <h2>Créditos e licenças</h2>
+      <h3>Texturas</h3>
+      <ul>
+        <li><b>Sol, Mercúrio, Vênus, Lua, Marte, Júpiter, Saturno (e anéis), Urano e Netuno:</b> <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener">Solar System Scope</a>, licença <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>, baseadas em dados da NASA.</li>
+        <li><b>Terra (cores, relevo, nuvens, luzes noturnas):</b> exemplos do <a href="https://github.com/mrdoob/three.js/tree/dev/examples/textures/planets" target="_blank" rel="noopener">three.js</a>, derivados de dados da NASA.</li>
+      </ul>
+      <h3>Software</h3>
+      <ul>
+        <li><a href="https://threejs.org/" target="_blank" rel="noopener">three.js</a> (MIT) e <a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> (MIT).</li>
+        <li>Posições planetárias do modo "Hoje": <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a> (MIT), de Don Cross.</li>
+      </ul>
+      <h3>Sobre os dados</h3>
+      <p>Os textos, números e curiosidades foram escritos a partir de fontes públicas (NASA, ESA, ESO e publicações científicas) e podem conter imprecisões. Galáxias, nebulosas, buracos negros e as órbitas das luas e dos satélites são representações estilizadas, e escalas e distâncias foram ajustadas para caber na tela. A explicação de cada escala está no painel de cada nível.</p>
+      <p class="muted">Astora é um projeto independente, sem vínculo com NASA, ESA ou qualquer agência.</p>
+    </dialog>
 
     <script type="module" src="/src/main.js"></script>
   </body>

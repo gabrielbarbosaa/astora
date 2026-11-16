@@ -1,9 +1,11 @@
+import { calcAvailable, renderCalc } from './calc.js';
+
 const $ = (s) => document.querySelector(s);
 
 const KM_EARTH = 12742;
 const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: n < 10 ? 2 : 1 });
 
-export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause, onSpeed, onOrbits }) {
+export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause, onSpeed, onOrbits, onTour, onToday, onDate }) {
   const panel = $('#panel');
   const levelsNav = $('#levels');
   const drawer = $('#drawer'), search = $('#search'), listEl = $('#list'), exploreBtn = $('#explore');
@@ -57,12 +59,44 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
   };
 
   const tab = (name) => {
-    for (const t of ['about', 'data', 'facts']) $(`#tab-${t}`).hidden = t !== name;
+    for (const t of ['about', 'data', 'facts', 'play']) $(`#tab-${t}`).hidden = t !== name;
     panel.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x.dataset.tab === name));
   };
   panel.querySelectorAll('.tabs button').forEach((x) => (x.onclick = () => tab(x.dataset.tab)));
   $('#close').onclick = () => onSelect(null);
   $('#home').onclick = onHome;
+
+  // ---- aviso rápido, compartilhar e créditos ----
+  const toastEl = $('#toast');
+  let toastTimer = 0;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('on'), 2200);
+  }
+  $('#share').onclick = async () => {
+    const url = location.href, title = document.title;
+    if (matchMedia('(pointer: coarse)').matches && navigator.share) {
+      try { await navigator.share({ title, url }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    try { await navigator.clipboard.writeText(url); toast('Link copiado!'); } catch { toast('Copie o link na barra de endereço'); }
+  };
+  const credits = $('#credits');
+  $('#credits-btn').onclick = () => credits.showModal();
+  $('#credits-close').onclick = () => credits.close();
+  credits.addEventListener('click', (e) => { if (e.target === credits) credits.close(); });
+
+  // ---- tour e modo "Hoje" (tempo real) ----
+  $('#tour-btn').onclick = () => onTour?.();
+  const todayBtn = $('#today'), timebar = $('#timebar'), dateIn = $('#t-date'), presets = $('#t-presets');
+  let todayOn = false;
+  const refreshTimebar = () => { timebar.hidden = !(todayOn && levelId === 'solar'); todayBtn.classList.toggle('on', todayOn); };
+  todayBtn.onclick = () => { todayOn = !todayOn; refreshTimebar(); onToday?.(todayOn); };
+  const setDate = (d) => { if (!isNaN(d)) onDate?.(d); };
+  dateIn.onchange = () => dateIn.value && setDate(new Date(dateIn.value + 'T12:00:00Z'));
+  $('#t-today').onclick = () => setDate(new Date());
+  presets.onchange = () => { if (presets.value) setDate(new Date(presets.value + 'T12:00:00Z')); presets.value = ''; };
 
   const step = (d) => {
     if (!currentPlanet || !list.length) return;
@@ -80,7 +114,7 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
   orb.onclick = () => { orb.classList.toggle('on'); onOrbits(orb.classList.contains('on')); };
 
   addEventListener('keydown', (e) => {
-    if (e.target === search) return; // digitando na busca: não dispara atalhos
+    if (e.target.matches?.('input:not([type=range]), select, textarea')) return; // digitando: não dispara atalhos
     if (e.key === '/' || (e.key === 'k' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); toggleDrawer(true); return; }
     if (e.key === 'Escape') { if (!drawer.hidden) toggleDrawer(false); else onSelect(null); }
     if (e.key === ' ') { e.preventDefault(); pause.click(); }
@@ -121,8 +155,18 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
   }
 
   return {
+    toast,
+    forceTodayOff() { todayOn = false; refreshTimebar(); },
+    // mostra a data atual da simulação, sem atrapalhar quem está digitando
+    setDateText(d) {
+      if (document.activeElement === dateIn) return;
+      const p = (n) => String(n).padStart(2, '0');
+      dateIn.value = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; // data local
+    },
     setLevel(id, newList) {
       levelId = id; list = newList;
+      todayBtn.hidden = id !== 'solar';
+      refreshTimebar();
       for (const k in levelBtns) levelBtns[k].classList.toggle('on', k === id);
       orb.style.display = id === 'solar' ? '' : 'none';
       search.value = '';
@@ -152,6 +196,9 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
       $('#tab-facts').innerHTML = `<ul>${b.facts.map((f) => `<li>${f}</li>`).join('')}</ul>`;
       gotoBox(b);
       moonsBox(b, parent);
+      const playable = calcAvailable(b, levelId);
+      $('#tab-play-btn').hidden = !playable;
+      if (playable) renderCalc($('#tab-play'), b, levelId);
       tab('about');
       panel.scrollTop = 0;
     },

@@ -7,6 +7,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import './style.css';
 import { initUI } from './ui.js';
 import { setPxScale } from './engine/helpers.js';
+import { createTour } from './tour.js';
 import { buildTelescopes } from './levels/telescopes.js';
 import { buildSolar } from './levels/solar.js';
 import { buildStars } from './levels/stars.js';
@@ -104,6 +105,26 @@ function select(id) {
   }
   ui.show(focus ? focus.data : null, focus?.parent?.data);
   ui.setActive(focus ? focus.data.id : null);
+  syncUrl();
+}
+
+// ---- Links diretos: #/<nível>/<astro> -------------------------------------
+const levelIds = levelsMeta.map((l) => l.id);
+function syncUrl() {
+  const h = `#/${level.id}${focus ? '/' + focus.data.id : ''}`;
+  if (location.hash !== h) history.replaceState(null, '', h);
+  document.title = focus ? `${focus.data.name} — Astora` : 'Astora — Explore o Universo em 3D';
+}
+function parseHash() {
+  const m = location.hash.match(/^#\/([a-z]+)(?:\/([\w-]+))?/);
+  return m && levelIds.includes(m[1]) ? { level: m[1], id: m[2] } : null;
+}
+async function navigateHash() {
+  const t = parseHash();
+  if (!t) return;
+  if (!level || level.id !== t.level) await setLevel(t.level);
+  if (t.id && level.byId[t.id]) { if (!focus || focus.data.id !== t.id) select(t.id); }
+  else if (focus) select(null);
 }
 
 const fadeEl = document.getElementById('fade');
@@ -123,24 +144,38 @@ function applyLevel(id) {
   ui.show(null);
   ui.setActive(null);
   level.setOrbits?.(document.getElementById('orbits').classList.contains('on'));
+  syncUrl();
 }
+// Troca de escala com transição; a Promise resolve quando o novo nível já está na tela
 function setLevel(id) {
-  if (switching || (level && level.id === id)) return;
+  if (switching || (level && level.id === id)) return Promise.resolve();
   switching = true;
   fadeEl.classList.add('on');
-  setTimeout(() => {
+  return new Promise((resolve) => setTimeout(() => {
     applyLevel(id);
     requestAnimationFrame(() => fadeEl.classList.remove('on'));
     switching = false;
-  }, 380);
+    resolve();
+  }, 380));
 }
 
+let tour = null;
 const ui = initUI({
   levelsMeta, onLevel: setLevel, onGoto: setLevel,
   onSelect: select, onHome: () => select(null),
   onPause: (p) => (paused = p), onSpeed: (s) => (speed = s),
   onOrbits: (v) => level?.setOrbits?.(v),
+  onTour: () => tour?.start(),
+  onToday: (on) => toggleRealTime(on),
+  onDate: (d) => levels.solar?.setDate?.(d),
 });
+tour = createTour({ setLevel, select, getLevelId: () => level.id, ui });
+
+// Modo "Hoje": posições reais dos planetas
+async function toggleRealTime(on) {
+  try { await ensureLevel('solar').setRealTime(on, new Date()); }
+  catch { ui.toast('Não foi possível carregar as posições reais.'); ui.forceTodayOff(); }
+}
 
 // Clique (diferencia de arrastar)
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -148,7 +183,7 @@ let down = null;
 function pickables() {
   const out = [];
   for (const e of level.entries) {
-    if (e.isMoon && !e.parent.moonSystem.visible) continue;
+    if (e.hide || (e.isMoon && !e.parent.moonSystem.visible)) continue;
     out.push(e.marker?.visible ? e.marker : e.mesh);
   }
   return out;
@@ -180,7 +215,10 @@ addEventListener('resize', resize); resize();
 // ---- Loop -----------------------------------------------------------------
 const clock = new THREE.Clock();
 let elapsed = 0;
-applyLevel('solar');
+const startTarget = parseHash();
+applyLevel(startTarget ? startTarget.level : 'solar');
+if (startTarget?.id && level.byId[startTarget.id]) select(startTarget.id);
+addEventListener('hashchange', navigateHash);
 
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05);
@@ -188,6 +226,8 @@ renderer.setAnimationLoop(() => {
   const k = paused ? 0 : speed * dt;
   const damp = (rate) => 1 - Math.exp(-rate * dt); // suavização independente do FPS
   level.update(k, dt, camera, elapsed);
+  const simDate = level.getDate?.();
+  if (simDate) ui.setDateText(simDate);
 
   if (focus) {
     focus.mesh.getWorldPosition(tmp);
@@ -215,7 +255,7 @@ renderer.setAnimationLoop(() => {
 
   // marcadores e rótulos
   for (const e of level.entries) {
-    const hidden = e.isMoon && !e.parent.moonSystem.visible;
+    const hidden = e.hide || (e.isMoon && !e.parent.moonSystem.visible);
     e.mesh.visible = !hidden;
     if (hidden) { e.label.style.display = 'none'; continue; }
     e.mesh.getWorldPosition(tmp);

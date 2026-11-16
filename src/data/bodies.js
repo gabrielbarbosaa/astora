@@ -4,7 +4,7 @@
 // e períodos estilizados, para caberem na tela. `years` = período orbital real (em anos terrestres).
 export const bodies = [
   {
-    id: 'sol', name: 'Sol', kind: 'Estrela', color: '#ffb347', km: 1391000, au: 0, years: 0, tilt: 0, spin: 0.03, star: true,
+    id: 'sol', name: 'Sol', group: 'Planetas e corpos menores', kind: 'Estrela', color: '#ffb347', km: 1391000, au: 0, years: 0, tilt: 0, spin: 0.03, star: true,
     goto: [{ level: 'stars', label: 'Ver as estrelas vizinhas' }, { level: 'galaxy', label: 'Ver o Sol na Via Láctea' }],
     about: 'A estrela do nosso sistema, uma anã amarela que concentra 99,86% de toda a massa do Sistema Solar. Funde hidrogênio em hélio no núcleo, liberando a energia que sustenta a vida na Terra. Aqui ele aparece menor que o real para que os planetas internos caibam na cena.',
     stats: [['Diâmetro', '1,39 milhão km'], ['Massa', '333.000 × Terra'], ['Idade', '4,6 bilhões de anos'], ['Núcleo', '15 milhões °C'], ['Superfície', '5.500 °C']],
@@ -68,7 +68,7 @@ export const bodies = [
     facts: ['Ao contrário dos filmes, os asteroides ficam muito distantes uns dos outros: as sondas passam sem risco de colisão.', 'A massa de todo o cinturão é menor que a da nossa Lua.', 'Aqui ele está bem mais denso do que na realidade, para ser visível.'],
   },
   {
-    id: 'jupiter', name: 'Júpiter', kind: 'Gigante gasoso', color: '#d9a066', km: 139820, au: 5.203, years: 11.86, tilt: 0.02, spin: 0.3, axisTilt: 0.05,
+    id: 'jupiter', name: 'Júpiter', satLabel: 'Luas e sondas', kind: 'Gigante gasoso', color: '#d9a066', km: 139820, au: 5.203, years: 11.86, tilt: 0.02, spin: 0.3, axisTilt: 0.05,
     rings: [{ inner: 1.45, outer: 1.8, strength: 0.16, seed: 21 }],
     about: 'O maior planeta do Sistema Solar: mais massivo que todos os outros somados. Sua Grande Mancha Vermelha é uma tempestade que dura há séculos. Possui anéis muito finos e escuros, difíceis de ver.',
     stats: [['Diâmetro', '139.820 km'], ['Distância do Sol', '778,5 milhões km'], ['Ano', '11,9 anos'], ['Dia', '9h 56min'], ['Luas', '95+'], ['Temp. nuvens', '-110 °C']],
@@ -86,6 +86,10 @@ export const bodies = [
         about: 'A maior lua do Sistema Solar, maior até que Mercúrio. É a única lua conhecida com campo magnético próprio.',
         stats: [['Diâmetro', '5.268 km'], ['Órbita', '7,15 dias'], ['Massa', '2× a da Lua']],
         facts: ['É maior que o planeta Mercúrio, mas bem menos massiva.', 'Também esconde um oceano sob a crosta de gelo.'] },
+      { id: 'juno', name: 'Juno', kind: 'Sonda em órbita de Júpiter', color: '#ffd9a0', km: 20, a: 2.5, period: 4,
+        about: 'Sonda da NASA que orbita Júpiter desde 2016, em uma órbita polar muito alongada, passando raspando as nuvens para estudar a gravidade, o magnetismo, a atmosfera e o interior do planeta. Aqui sua órbita é estilizada.',
+        stats: [['Lançamento', '5 de agosto de 2011'], ['Chegada a Júpiter', '4 de julho de 2016'], ['Energia', 'Solar, 3 painéis de ≈ 9 m'], ['Órbita', 'Polar e elíptica']],
+        facts: ['É a primeira sonda a Júpiter movida a energia solar, não nuclear.', 'Leva três bonecos de Lego: Galileu, a deusa Juno e o deus Júpiter.', 'Fotos da sua câmera, a JunoCam, foram processadas por cidadãos do mundo todo.'] },
       { id: 'calisto', name: 'Calisto', kind: 'Lua de Júpiter', color: '#5e5650', km: 4821, a: 4.2, period: 25,
         about: 'Uma das superfícies mais antigas e mais craterizadas do Sistema Solar, quase inalterada há 4 bilhões de anos.',
         stats: [['Diâmetro', '4.821 km'], ['Órbita', '16,7 dias'], ['Crateras', 'superfície saturada']],
@@ -188,5 +192,27 @@ export const bodies = [
     stats: [['Núcleo', '≈ 15 × 8 km'], ['Período', '75,3 anos'], ['Periélio', '0,59 UA (entre Mercúrio e Vênus)'], ['Afélio', '35 UA (além de Netuno)'], ['Última passagem', '1986'], ['Próxima', '2061']],
     facts: ['Foi o primeiro cometa cuja volta foi prevista, por Edmond Halley, em 1705.', 'Aparece na Tapeçaria de Bayeux, de 1066.', 'A sonda Giotto passou a 600 km do seu núcleo em 1986.', 'Seu núcleo é mais escuro que carvão.'],
     moons: [],
+  },
+  // ---- Sondas e missões. `probe`: posição aproximada em novembro de 2026 (d0, em UA), velocidade (v, UA/ano) e direção (longitude/latitude eclípticas)
+  {
+    id: 'voyager1', name: 'Voyager 1', group: 'Sondas e missões', kind: 'Sonda espacial · espaço interestelar', color: '#ffd27a', size: 'antena de 3,7 m',
+    probe: { d0: 173, v: 3.57, lon: 256, lat: 35, launch: '1977-09-05' },
+    about: 'O objeto mais distante já construído pela humanidade. Lançada em 1977 para estudar Júpiter e Saturno, seguiu em frente e, em 2012, foi a primeira a entrar no espaço interestelar. Ainda envia dados da Terra, a mais de 25 bilhões de km. Aqui a posição é aproximada.',
+    stats: [['Lançamento', '5 de setembro de 1977'], ['Distância do Sol', '≈ 173 UA (26 bilhões de km)'], ['Velocidade', '≈ 17 km/s'], ['Espaço interestelar desde', '25 de agosto de 2012'], ['Agência', 'NASA'], ['Situação', 'Ativa']],
+    facts: ['Em novembro de 2026 ela chega a 1 dia-luz da Terra: um sinal de rádio leva 24 horas para alcançá-la.', 'Leva o "Disco de Ouro", com sons, imagens e saudações em 55 idiomas.', 'Em 1990, a pedido de Carl Sagan, fotografou a Terra de 6 bilhões de km: o "Pálido Ponto Azul".', 'Seus computadores têm menos memória que uma única foto de celular.'],
+  },
+  {
+    id: 'voyager2', name: 'Voyager 2', kind: 'Sonda espacial · espaço interestelar', color: '#ffc07a', size: 'antena de 3,7 m',
+    probe: { d0: 150, v: 3.28, lon: 290, lat: -38, launch: '1977-08-20' },
+    about: 'A única sonda que visitou Urano (1986) e Netuno (1989). Aproveitou um alinhamento raro dos planetas gigantes e, em 2018, também entrou no espaço interestelar. Aqui a posição é aproximada.',
+    stats: [['Lançamento', '20 de agosto de 1977'], ['Distância do Sol', '≈ 150 UA'], ['Velocidade', '≈ 15 km/s'], ['Espaço interestelar desde', '5 de novembro de 2018'], ['Agência', 'NASA'], ['Situação', 'Ativa']],
+    facts: ['É a única nave a ter sobrevoado Urano e Netuno.', 'O alinhamento que ela usou, o "Grande Tour", só acontece a cada ~175 anos.', 'Foi lançada 16 dias antes da Voyager 1, mas a 1 é mais rápida.'],
+  },
+  {
+    id: 'newhorizons', name: 'New Horizons', kind: 'Sonda espacial · Cinturão de Kuiper', color: '#9fd6ff', size: 'antena de 2,1 m',
+    probe: { d0: 67, v: 2.9, lon: 289, lat: 2, launch: '2006-01-19' },
+    about: 'Fez o primeiro sobrevoo de Plutão, em 2015, e depois de Arrokoth, um "boneco de neve" de gelo, em 2019. Continua viajando pelo Cinturão de Kuiper e além. Aqui a posição é aproximada.',
+    stats: [['Lançamento', '19 de janeiro de 2006'], ['Sobrevoo de Plutão', '14 de julho de 2015'], ['Distância do Sol', '≈ 67 UA'], ['Velocidade', '≈ 14 km/s'], ['Agência', 'NASA'], ['Situação', 'Em missão estendida']],
+    facts: ['Foi a nave lançada com maior velocidade: passou pela órbita da Lua em cerca de 9 horas.', 'Leva parte das cinzas de Clyde Tombaugh, que descobriu Plutão em 1930.', 'Em 2019, Arrokoth era o objeto mais distante já visitado de perto.'],
   },
 ];
