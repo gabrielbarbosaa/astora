@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { bodies } from '../data/bodies.js';
 import { textureFor, moonTexture, ringTexture, glowTexture, dotTexture } from '../textures.js';
 import { circle, makeMarker, pickMesh, addSatellites, pointsMaterial } from '../engine/helpers.js';
+import { createEarth } from '../earth.js';
+import { upgradeFor, ringMap } from '../planetMaps.js';
 
 // ---- Escala ---------------------------------------------------------------
 // Distâncias (UA) e diâmetros (km) são proporcionais entre si. O Sol é desenhado menor que o real.
@@ -22,7 +24,14 @@ export function buildSolar() {
   const dotTex = dotTexture();
   let seedN = 1;
 
+  let earthFX = null;
   function makeSphere(d, R, kind) {
+    if (d.id === 'terra') { // Terra realista (texturas reais)
+      earthFX = createEarth();
+      earthFX.mesh.scale.setScalar(R);
+      earthFX.mesh.userData.id = d.id;
+      return earthFX.mesh;
+    }
     let mat;
     if (d.star) mat = new THREE.MeshBasicMaterial({ map: textureFor.sol(), color: new THREE.Color(1.6, 1.3, 1.0) });
     else {
@@ -36,11 +45,11 @@ export function buildSolar() {
   }
 
   // Anel no plano equatorial do planeta (não gira junto com a superfície)
-  function makeRing(R, { inner, outer, strength, seed }) {
+  function makeRing(R, { inner, outer, strength, seed, file }) {
     const geo = new THREE.RingGeometry(R * inner, R * outer, 160, 1);
     const p = geo.attributes.position, uv = geo.attributes.uv, v = new THREE.Vector3();
     for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); uv.setXY(i, (v.length() / R - inner) / (outer - inner), 0.5); }
-    const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: ringTexture(strength, seed), side: THREE.DoubleSide, transparent: true, depthWrite: false }));
+    const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: file ? ringMap(file) : ringTexture(strength, seed), side: THREE.DoubleSide, transparent: true, depthWrite: false }));
     ring.rotation.x = -Math.PI / 2;
     return ring;
   }
@@ -133,10 +142,13 @@ export function buildSolar() {
       sizeOf: (m) => Math.max(radiusOf(m.km), 0.03), // luas minúsculas ganham um tamanho mínimo visível
       makeBody: (m, mR) => makeSphere(m, mR, 'moon'),
     });
+    if (d.id === 'terra') e.earthFX = earthFX;
+    e.upgrade = upgradeFor(mesh, d.id);
+    for (const m of e.moons) m.upgrade = upgradeFor(m.mesh, m.data.id);
     entries.push(e); planets.push(e); byId[d.id] = e;
   }
 
-  const _d = new THREE.Vector3();
+  const _d = new THREE.Vector3(), _s = new THREE.Vector3();
   function place(e) {
     if (e.isMoon) { e.mesh.position.set(Math.cos(e.angle) * e.orbit, 0, -Math.sin(e.angle) * e.orbit); return; }
     if (e.isStatic) return;
@@ -163,10 +175,15 @@ export function buildSolar() {
     near: 0.02, far: 14000, minDist: 4, maxDist: 3200,
     setOrbits: (v) => orbitLines.forEach((l) => (l.visible = v)),
     activeSystem(p) { for (const e of planets) if (e.moonSystem) e.moonSystem.visible = e === p; },
-    update(k) {
+    update(k, dt, camera) {
       for (const e of entries) {
+        if (e.earthFX) { // o Sol está na origem: a direção até ele é o oposto da posição da Terra
+          e.mesh.getWorldPosition(_s);
+          e.earthFX.setSun(_s.negate().normalize(), camera);
+          e.earthFX.drift(k);
+        }
         if (e.period) { e.angle += (k * Math.PI * 2) / e.period; place(e); }
-        if (e.isMoon) e.mesh.rotation.y = e.angle; // rotação sincronizada: mesma face para o planeta
+        if (e.isMoon) e.mesh.rotation.y = e.angle + Math.PI; // rotação sincronizada: mesma face para o planeta
         else if (!e.isStatic) e.mesh.rotation.y += k * e.data.spin * 2;
       }
       for (const s of spinners) s.rotation.y += k * 0.01;

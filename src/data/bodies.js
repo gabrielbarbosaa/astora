@@ -94,7 +94,7 @@ export const bodies = [
   },
   {
     id: 'saturno', name: 'Saturno', kind: 'Gigante gasoso', color: '#e3c98f', km: 116460, au: 9.537, years: 29.45, tilt: 0.04, spin: 0.28, axisTilt: 0.47,
-    rings: [{ inner: 1.25, outer: 2.3, strength: 1, seed: 11 }],
+    rings: [{ inner: 1.25, outer: 2.3, strength: 1, seed: 11, file: '2k_saturn_ring_alpha.png' }],
     about: 'Famoso pelos anéis feitos de bilhões de pedaços de gelo e rocha. É tão pouco denso que, em teoria, flutuaria na água.',
     stats: [['Diâmetro', '116.460 km'], ['Distância do Sol', '1,43 bilhão km'], ['Ano', '29,5 anos'], ['Dia', '10h 33min'], ['Luas', '140+'], ['Temp. nuvens', '-140 °C']],
     facts: ['Os anéis têm até 280.000 km de largura, mas em geral só ~10 m de espessura.', 'Os anéis podem ser relativamente jovens, com algumas centenas de milhões de anos.', 'Seu eixo é inclinado 26,7°, por isso vemos os anéis de ângulos diferentes ao longo dos anos.'],

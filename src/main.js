@@ -220,6 +220,7 @@ renderer.setAnimationLoop(() => {
     if (hidden) { e.label.style.display = 'none'; continue; }
     e.mesh.getWorldPosition(tmp);
     const dist = camera.position.distanceTo(tmp);
+    if (e.upgrade && dist < e.R * 70) { e.upgrade(); e.upgrade = null; } // textura real, sob demanda
     if (e.marker) e.marker.visible = dist > (e.markerDist ?? e.R * 45) && dist < (e.markerMax ?? Infinity);
     tmp.project(camera);
     const vis = tmp.z < 1 && Math.abs(tmp.x) < 1.05 && Math.abs(tmp.y) < 1.05 && dist > e.R * 1.8 && dist < (e.labelMax ?? Infinity);

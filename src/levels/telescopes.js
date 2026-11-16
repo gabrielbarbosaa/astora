@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { telescopes } from '../data/telescopes.js';
-import { textureFor, glowTexture, dotTexture } from '../textures.js';
+import { glowTexture, dotTexture } from '../textures.js';
+import { createEarth } from '../earth.js';
 import { circle, makeMarker, pickMesh } from '../engine/helpers.js';
 
 const RE = 3; // raio da Terra na cena
@@ -57,9 +58,10 @@ export function buildTelescopes() {
   // Terra (estilizada) com atmosfera, iluminada pelo Sol vindo de +X
   const earthPivot = new THREE.Group();
   group.add(earthPivot);
-  const earth = new THREE.Mesh(sphere, new THREE.MeshStandardMaterial({ map: textureFor.terra(), roughness: 0.9 }));
-  earth.scale.setScalar(RE);
-  earthPivot.add(earth);
+  const earthFX = createEarth();
+  earthFX.mesh.scale.setScalar(RE);
+  earthPivot.add(earthFX.mesh);
+  const SUN_DIR = new THREE.Vector3(100, 18, 30).normalize();
   const atmo = new THREE.Mesh(sphere, new THREE.ShaderMaterial({
     transparent: true, side: THREE.FrontSide, blending: THREE.AdditiveBlending, depthWrite: false,
     vertexShader: 'varying vec3 n;void main(){n=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
@@ -90,7 +92,7 @@ export function buildTelescopes() {
       d.focusDist ??= 7;
       const pins = d.sites.map(([lat, lon]) => {
         const p = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: d.color }));
-        p.scale.setScalar(0.07);
+        p.scale.setScalar(0.04);
         p.position.copy(toVec(lat, lon, RE * 1.005));
         p.userData.id = d.id;
         earthPivot.add(p);
@@ -105,9 +107,9 @@ export function buildTelescopes() {
       }
       const mk = makeMarker(dotTex, d.color, 0.012);
       mk.userData.id = d.id;
-      pins[0].add(mk); mk.scale.setScalar(0.012 / 0.07);
-      Object.assign(e, { R: 0.07, mesh: pins[0], marker: mk, markerDist: 5, markerMax: 40, labelMax: 38 });
-      e.extent = 0.07;
+      pins[0].add(mk); mk.scale.setScalar(0.012 / 0.04);
+      Object.assign(e, { R: 0.04, mesh: pins[0], marker: mk, markerDist: 5, markerMax: 40, labelMax: 38 });
+      e.extent = 0.04;
     } else {
       const s = d.s ?? 0.16;
       const holder = new THREE.Group();
@@ -145,8 +147,10 @@ export function buildTelescopes() {
     home: new THREE.Vector3(-4, 40, 92), target: new THREE.Vector3(),
     near: 0.02, far: 14000, minDist: 1, maxDist: 260,
     activeSystem() {},
-    update(k) {
+    update(k, dt, camera) {
       earthPivot.rotation.y += k * 0.06;
+      earthFX.setSun(SUN_DIR, camera);
+      earthFX.drift(k);
       moonPivot.rotation.y += k * 0.04;
       for (const e of moving) {
         const d = e.data, o = d.orbit;

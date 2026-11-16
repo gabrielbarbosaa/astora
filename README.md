@@ -30,11 +30,17 @@ npm run build    # gera ./dist
 
 ## Escala e fidelidade
 
-- **Telescópios:** a Terra é estilizada (os continentes não coincidem com o mapa real), mas os pinos dos observatórios em solo usam latitude/longitude reais. As órbitas e distâncias dos satélites são estilizadas: L1 e L2 ficam bem mais perto da Terra do que na realidade (1,5 milhão de km).
+- **Telescópios:** a Terra usa texturas reais, e os pinos dos observatórios em solo usam latitude/longitude reais. As órbitas e distâncias dos satélites são estilizadas: L1 e L2 ficam bem mais perto da Terra do que na realidade (1,5 milhão de km).
 - **Sistema Solar:** distâncias (UA) e diâmetros (km) dos planetas são proporcionais entre si. O Sol é desenhado menor que o real; órbitas das luas, períodos e tamanho mínimo de luas minúsculas são estilizados.
 - **Vizinhança Estelar:** posições reais (ascensão reta, declinação, distância). Betelgeuse, Antares e Rigel têm distância comprimida; o raio das estrelas é estilizado.
 - **Via Láctea e Grupo Local:** a forma das galáxias é estilizada por tipo (não são mapas reais), as distâncias do Grupo Local usam raiz quadrada, e buracos negros, nebulosas e jatos estão em escala exagerada.
 - Otimizações: partículas em um único `Points` com shader próprio, níveis construídos sob demanda, pixel ratio ≤ 2, bloom desligado e menos partículas em dispositivos touch.
+
+## Créditos
+
+- Texturas da Terra (`public/textures/earth/`): imagens de exemplo do repositório do [three.js](https://github.com/mrdoob/three.js/tree/dev/examples/textures/planets), originadas de dados da NASA. Confirme a licença antes de publicar o site.
+- Texturas de Sol, Mercúrio, Vênus (camada de nuvens), Lua, Marte, Júpiter, Saturno (e anéis), Urano e Netuno (`public/textures/planets/`, 2K): [Solar System Scope](https://www.solarsystemscope.com/textures/), licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), baseadas em dados da NASA. São carregadas sob demanda, quando a câmera chega perto (`src/planetMaps.js`).
+- A Terra usa mapa de cores, relevo, brilho do oceano, nuvens e luzes de cidade apenas no lado noturno (`src/earth.js`). Os demais astros ainda usam texturas procedurais.
 
 ## Próximos passos
 
