@@ -17,6 +17,10 @@ Explorador 3D do Universo em cinco escalas. Arraste para girar, role (ou pince) 
 - **Tour guiado:** visita narrada (voz opcional, via síntese do navegador) por 17 paradas, do James Webb ao Grupo Local.
 - **Modo "Hoje":** posições reais dos planetas e da Lua (biblioteca [Astronomy Engine](https://github.com/cosinekitty/astronomy)), com órbitas elípticas reais e viagem no tempo entre 1900 e 2100. O pacote é carregado só quando o modo é ligado. Ceres, Éris e Halley seguem movimento real, mas com posição aproximada.
 - **Sondas:** Voyager 1 e 2, New Horizons (posições aproximadas em nov/2026, afastando-se em linha reta) e Juno em órbita de Júpiter.
+- **Fases da Lua e eclipses:** no modo "Hoje", a Terra segue o eixo e a rotação reais, a Lua mostra a fase, a sombra dela cai sobre a Terra nos eclipses solares e a Lua escurece (cobre) nos lunares. Há uma lista dos próximos eclipses e controle de velocidade do tempo.
+- **Satélites ao vivo (nível Telescópios, botão "Ao vivo"):** ISS, telescópios espaciais, GPS, satélites geoestacionários e, opcionalmente, Starlink, nas posições reais de agora (dados orbitais do [CelesTrak](https://celestrak.org/) + satellite.js). A Terra e o Sol seguem o horário real. Os dados são buscados no navegador e guardados por ~2 h.
+- **Meu céu:** planetário 2D do céu de hoje no seu lugar (cidade ou localização, que nunca sai do dispositivo), com Sol, Lua com fase, planetas, ~90 estrelas e 13 constelações, e um controle de ±12 horas.
+- **Celular e PWA:** layout adaptado a telas pequenas, menos carga em dispositivos touch, instalável como app e com cache offline (service worker, só em HTTPS).
 - **Créditos e licenças** em uma janela própria (botão ⓘ).
 
 Atalhos: `/` (ou `Ctrl+K`) abre a busca "Explorar", `1`–`4` trocam de escala, `←`/`→` astro anterior/próximo, `Espaço` pausa, `Esc` volta à visão geral (ou encerra o tour).

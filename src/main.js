@@ -8,6 +8,7 @@ import './style.css';
 import { initUI } from './ui.js';
 import { setPxScale } from './engine/helpers.js';
 import { createTour } from './tour.js';
+import { createSky } from './sky.js';
 import { buildTelescopes } from './levels/telescopes.js';
 import { buildSolar } from './levels/solar.js';
 import { buildStars } from './levels/stars.js';
@@ -17,7 +18,7 @@ import { buildUniverse } from './levels/universe.js';
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2)); // celular: menos pixels, bateria e FPS melhores
 renderer.toneMapping = THREE.ACESFilmicToneMapping; // comprime realces: planetas e galáxias não "estouram"
 renderer.toneMappingExposure = 0.9;
 
@@ -59,11 +60,11 @@ scene.add(new THREE.AmbientLight(0x8793b8, 0.4));
 
 // ---- Níveis ---------------------------------------------------------------
 const levelsMeta = [
-  { id: 'telescopes', name: 'Telescópios' },
-  { id: 'solar', name: 'Sistema Solar' },
-  { id: 'stars', name: 'Vizinhança Estelar' },
-  { id: 'galaxy', name: 'Via Láctea' },
-  { id: 'universe', name: 'Grupo Local' },
+  { id: 'telescopes', name: 'Telescópios', short: 'Telescópios' },
+  { id: 'solar', name: 'Sistema Solar', short: 'Solar' },
+  { id: 'stars', name: 'Vizinhança Estelar', short: 'Estrelas' },
+  { id: 'galaxy', name: 'Via Láctea', short: 'Galáxia' },
+  { id: 'universe', name: 'Grupo Local', short: 'Grupo Local' },
 ];
 const builders = { telescopes: buildTelescopes, solar: buildSolar, stars: buildStars, galaxy: () => buildGalaxy({ isMobile }), universe: () => buildUniverse({ isMobile }) };
 const levels = {};
@@ -87,10 +88,11 @@ function ensureLevel(id) {
 }
 
 // ---- Seleção / câmera -----------------------------------------------------
-let viewX = 0, focus = null, desiredDist = null, paused = false, speed = 1, homeAnim = false;
+let viewX = 0, viewY = 0, focus = null, desiredDist = null, paused = false, speed = 1, homeAnim = false;
 const tmp = new THREE.Vector3(), v3 = new THREE.Vector3();
 
 function select(id) {
+  if (id && level.byId[id]?.hide) { ui.toast('Esse astro só aparece quando o modo "Ao vivo" está ligado.'); return; }
   focus = id ? level.byId[id] : null;
   const planet = focus ? focus.parent ?? focus : null;
   level.activeSystem(planet);
@@ -139,7 +141,7 @@ function applyLevel(id) {
   camera.near = level.near; camera.far = level.far; camera.updateProjectionMatrix();
   controls.minDistance = level.minDist; controls.maxDistance = level.maxDist;
   camera.position.copy(level.home); controls.target.copy(level.target);
-  focus = null; desiredDist = null; homeAnim = false; viewX = 0; camera.clearViewOffset();
+  focus = null; desiredDist = null; homeAnim = false; viewX = 0; viewY = 0; camera.clearViewOffset();
   ui.setLevel(id, level.list);
   ui.show(null);
   ui.setActive(null);
@@ -168,13 +170,46 @@ const ui = initUI({
   onTour: () => tour?.start(),
   onToday: (on) => toggleRealTime(on),
   onDate: (d) => levels.solar?.setDate?.(d),
+  onRate: (r) => levels.solar?.setRate?.(r),
+  onLive: (on) => toggleLive(on),
+  onStarlink: (on) => toggleStarlink(on),
+  onSky: () => sky.show().catch(() => ui.toast('Não foi possível abrir o planetário agora.')),
+});
+// "Meu céu": enquanto aberto, o 3D não precisa ser desenhado
+let skyOpen = false;
+const sky = createSky({
+  onOpen: () => { skyOpen = true; document.body.classList.add('sky-open'); },
+  onClose: () => { skyOpen = false; lastT = performance.now(); document.body.classList.remove('sky-open'); },
+  toast: (m) => ui.toast(m),
 });
 tour = createTour({ setLevel, select, getLevelId: () => level.id, ui });
 
 // Modo "Hoje": posições reais dos planetas
 async function toggleRealTime(on) {
-  try { await ensureLevel('solar').setRealTime(on, new Date()); }
-  catch { ui.toast('Não foi possível carregar as posições reais.'); ui.forceTodayOff(); }
+  try {
+    const s = ensureLevel('solar');
+    await s.setRealTime(on, new Date());
+    ui.setEclipses(s.getEclipses());
+    if (!on) ui.setHud(null);
+  } catch { ui.toast('Não foi possível carregar as posições reais.'); ui.forceTodayOff(); }
+}
+
+// Modo "Ao vivo": satélites e ISS reais (dados públicos do CelesTrak)
+async function toggleLive(on) {
+  try {
+    if (on) ui.toast('Carregando satélites…');
+    await ensureLevel('telescopes').setLive(on);
+    if (on) ui.toast('Satélites carregados. Dados do CelesTrak.');
+  } catch {
+    ui.toast('Não foi possível carregar os dados dos satélites agora.');
+    await ensureLevel('telescopes').setLive(false).catch(() => {});
+    ui.forceLiveOff();
+  }
+}
+async function toggleStarlink(on) {
+  if (on) ui.toast('Carregando Starlink (≈ 2 MB)…');
+  try { const n = await ensureLevel('telescopes').setStarlink(on); if (on) ui.toast(`${n.toLocaleString('pt-BR')} satélites Starlink adicionados.`); }
+  catch { ui.toast('Não foi possível carregar o Starlink.'); }
 }
 
 // Clique (diferencia de arrastar)
@@ -213,21 +248,30 @@ function resize() {
 addEventListener('resize', resize); resize();
 
 // ---- Loop -----------------------------------------------------------------
-const clock = new THREE.Clock();
+let lastT = performance.now(), frameN = 0;
 let elapsed = 0;
+if (import.meta.env.DEV) window.__astora = { levels, get level() { return level; } }; // só em desenvolvimento
 const startTarget = parseHash();
 applyLevel(startTarget ? startTarget.level : 'solar');
 if (startTarget?.id && level.byId[startTarget.id]) select(startTarget.id);
 addEventListener('hashchange', navigateHash);
 
 renderer.setAnimationLoop(() => {
-  const dt = Math.min(clock.getDelta(), 0.05);
+  if (skyOpen) return;
+  const now = performance.now();
+  const rawDt = (now - lastT) / 1000;   // tempo real decorrido (usado pelo relógio do modo "Hoje")
+  const dt = Math.min(rawDt, 0.05);     // passo limitado para animações (evita saltos em máquinas lentas)
+  lastT = now;
   elapsed += dt;
   const k = paused ? 0 : speed * dt;
   const damp = (rate) => 1 - Math.exp(-rate * dt); // suavização independente do FPS
-  level.update(k, dt, camera, elapsed);
+  level.update(k, dt, camera, elapsed, rawDt);
+  if (frameN % 20 === 0) ui.setLiveInfo(level.getLiveInfo?.());
   const simDate = level.getDate?.();
-  if (simDate) ui.setDateText(simDate);
+  if (simDate) {
+    ui.setDateText(simDate);
+    if (++frameN % 12 === 0) ui.setHud(level.getHud?.());
+  }
 
   if (focus) {
     focus.mesh.getWorldPosition(tmp);
@@ -246,9 +290,13 @@ renderer.setAnimationLoop(() => {
   }
 
   // Desloca a cena enquanto o painel está aberto (só em telas largas)
-  const wantX = focus && innerWidth > 720 ? Math.min(200, innerWidth * 0.17) : 0;
+  // Em telas largas o painel fica à direita (a vista vai para a esquerda); no celular ele sobe de baixo (a vista sobe)
+  const wide = innerWidth > 720;
+  const wantX = focus && wide ? Math.min(200, innerWidth * 0.17) : 0;
+  const wantY = focus && !wide ? innerHeight * 0.2 : 0;
   viewX += (wantX - viewX) * damp(5);
-  if (Math.abs(viewX) > 0.5 || wantX) camera.setViewOffset(innerWidth, innerHeight, viewX, 0, innerWidth, innerHeight);
+  viewY += (wantY - viewY) * damp(5);
+  if (Math.abs(viewX) > 0.5 || Math.abs(viewY) > 0.5 || wantX || wantY) camera.setViewOffset(innerWidth, innerHeight, viewX, viewY, innerWidth, innerHeight);
   else camera.clearViewOffset();
 
   controls.update();
@@ -273,6 +321,11 @@ renderer.setAnimationLoop(() => {
   }
   composer.render();
 });
+
+// PWA: instalável e com cache (só em HTTPS, para não atrapalhar o desenvolvimento local)
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
 
 controls.addEventListener('start', () => { homeAnim = false; desiredDist = null; });
 requestAnimationFrame(() => document.getElementById('loader').classList.add('done'));

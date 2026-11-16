@@ -12,6 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "astronomy-engine": "^2.1.19",
+    "satellite.js": "^6.0.2",
     "three": "^0.187.0"
   },
   "devDependencies": {

@@ -7,6 +7,10 @@
     <meta name="description" content="Astora: viaje do Sistema Solar às galáxias em 3D. Veja planetas, luas, telescópios, estrelas e buracos negros, com detalhes e curiosidades." />
     <meta name="theme-color" content="#04060d" />
     <link rel="canonical" href="https://astora.gabrielbarbosadev.com.br/" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Astora" />
     <meta property="og:locale" content="pt_BR" />
@@ -95,6 +99,26 @@
         <option value="2024-04-08">2024 · Eclipse total nos EUA</option>
         <option value="2061-07-28">2061 · Halley volta</option>
       </select>
+      <select id="t-eclipses" aria-label="Próximos eclipses">
+        <option value="">Próximos eclipses…</option>
+      </select>
+      <select id="t-rate" aria-label="Velocidade do tempo" title="Velocidade do tempo (multiplicada pelo controle de velocidade)">
+        <option value="0.0000115741" selected>Tempo real</option>
+        <option value="0.000694444">1 min/s</option>
+        <option value="0.0416667">1 hora/s</option>
+        <option value="1">1 dia/s</option>
+        <option value="10">10 dias/s</option>
+        <option value="30">1 mês/s</option>
+        <option value="365">1 ano/s</option>
+      </select>
+      <span id="t-moon" class="tb-moon"></span>
+    </div>
+
+    <div id="livebar" class="timebar" hidden>
+      <span class="tb-label">● Ao vivo</span>
+      <span id="l-clock" class="tb-moon"></span>
+      <span id="l-count" class="tb-moon"></span>
+      <button id="l-starlink" title="Carrega ~9.000 satélites Starlink (≈ 2 MB de dados)">+ Starlink</button>
     </div>
 
     <footer class="dock">
@@ -104,8 +128,10 @@
           Explorar <kbd>/</kbd>
         </button>
         <button id="tour-btn" class="explore alt">▶ Tour</button>
+        <button id="sky-btn" class="explore alt" title="O céu de hoje, do seu lugar">🌙 Meu céu</button>
       </div>
       <div class="controls">
+        <button id="live-btn" title="Satélites e ISS em tempo real, com a Terra e o Sol na posição de agora" hidden>Ao vivo</button>
         <button id="today" title="Mostrar as posições reais dos planetas, com viagem no tempo" hidden>Hoje</button>
         <button id="home" title="Visão geral">⌂ Visão geral</button>
         <button id="orbits" class="on" title="Mostrar órbitas">Órbitas</button>
@@ -116,6 +142,28 @@
         <button id="credits-btn" title="Créditos e licenças" aria-label="Créditos e licenças">ⓘ</button>
       </div>
     </footer>
+
+    <section id="sky" class="sky" hidden aria-label="Meu céu hoje">
+      <canvas id="sky-canvas"></canvas>
+      <header class="sky-top">
+        <strong>Meu céu</strong>
+        <span id="sky-place" class="sky-place"></span>
+        <button id="sky-geo" title="Usa a localização só neste dispositivo; nada é enviado ou guardado">📍 Minha localização</button>
+        <select id="sky-city" aria-label="Escolher cidade"></select>
+        <button id="sky-close" class="icon-btn" aria-label="Fechar">×</button>
+      </header>
+      <footer class="sky-bottom">
+        <div class="sky-info" id="sky-info"></div>
+        <div class="sky-ctl">
+          <button id="sky-now">Agora</button>
+          <input id="sky-offset" type="range" min="-12" max="12" step="0.05" value="0" aria-label="Horas a partir de agora" />
+          <span id="sky-when"></span>
+          <label><input type="checkbox" id="sk-const" checked /> Constelações</label>
+          <label><input type="checkbox" id="sk-names" checked /> Nomes</label>
+          <label><input type="checkbox" id="sk-ecl" checked /> Eclíptica</label>
+        </div>
+      </footer>
+    </section>
 
     <dialog id="credits" class="credits">
       <button class="icon-btn" id="credits-close" aria-label="Fechar">×</button>
@@ -128,7 +176,8 @@
       <h3>Software</h3>
       <ul>
         <li><a href="https://threejs.org/" target="_blank" rel="noopener">three.js</a> (MIT) e <a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> (MIT).</li>
-        <li>Posições planetárias do modo "Hoje": <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a> (MIT), de Don Cross.</li>
+        <li>Posições planetárias, eclipses e o planetário "Meu céu": <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a> (MIT), de Don Cross.</li>
+        <li>Órbitas de satélites: <a href="https://github.com/shashwatak/satellite-js" target="_blank" rel="noopener">satellite.js</a> (MIT), com dados orbitais (TLE) públicos do <a href="https://celestrak.org/" target="_blank" rel="noopener">CelesTrak</a>, usados no modo "Ao vivo".</li>
       </ul>
       <h3>Sobre os dados</h3>
       <p>Os textos, números e curiosidades foram escritos a partir de fontes públicas (NASA, ESA, ESO e publicações científicas) e podem conter imprecisões. Galáxias, nebulosas, buracos negros e as órbitas das luas e dos satélites são representações estilizadas, e escalas e distâncias foram ajustadas para caber na tela. A explicação de cada escala está no painel de cada nível.</p>

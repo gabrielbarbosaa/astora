@@ -5,9 +5,17 @@
 const S = 'Telescópios espaciais', G = 'Observatórios em solo', X = 'Aposentados e em construção';
 
 export const telescopes = [
+  // ---------------- Ao vivo ----------------
+  {
+    id: 'iss', name: 'Estação Espacial Internacional', group: 'Ao vivo agora', kind: 'Estação espacial · posição em tempo real', color: '#ffffff',
+    type: 'live', norad: 25544, model: 'generic', s: 0.14, size: '109 m de ponta a ponta',
+    about: 'O maior objeto já construído pelo ser humano no espaço, habitado sem interrupção desde 2000. Ligue o modo "Ao vivo" para vê-la na posição real neste instante, a cerca de 400 km de altura, com a posição calculada a partir de dados orbitais atualizados do CelesTrak.',
+    stats: [['Primeiro módulo', '20 de novembro de 1998'], ['Habitada desde', '2 de novembro de 2000'], ['Altura', '≈ 400 km'], ['Velocidade', '≈ 27.600 km/h (7,7 km/s)'], ['Volta à Terra', 'a cada ≈ 92 minutos'], ['Agências', 'NASA, Roscosmos, ESA, JAXA, CSA']],
+    facts: ['Dá cerca de 16 voltas por dia: os astronautas veem 16 nasceres do Sol a cada 24 horas.', 'Tem o tamanho de um campo de futebol e pesa mais de 400 toneladas.', 'Pode ser vista a olho nu como uma "estrela" brilhante e rápida, logo depois do pôr do sol.', 'Mais de 270 pessoas de dezenas de países já a visitaram.'],
+  },
   // ---------------- Espaço ----------------
   {
-    id: 'hubble', name: 'Hubble', group: S, kind: 'Telescópio espacial · visível, UV e infravermelho próximo', color: '#9fc4ff',
+    id: 'hubble', name: 'Hubble', group: S, norad: 20580, kind: 'Telescópio espacial · visível, UV e infravermelho próximo', color: '#9fc4ff',
     type: 'leo', orbit: { a: 4.0, incl: 0.497, node: 0.3, period: 7 }, model: 'hubble', s: 0.16, size: 'espelho de 2,4 m',
     about: 'O telescópio espacial mais famoso da história. Orbita acima da atmosfera, que embaça e bloqueia parte da luz, e por isso enxerga com uma nitidez impossível do solo. É o único telescópio que foi consertado por astronautas no espaço.',
     stats: [['Lançamento', '24 de abril de 1990'], ['Agência', 'NASA / ESA'], ['Espelho', '2,4 m'], ['Luz observada', 'UV, visível e infravermelho próximo'], ['Órbita', '≈ 540 km de altura · 95 min'], ['Situação', 'Ativo']],
@@ -21,42 +29,42 @@ export const telescopes = [
     facts: ['A temperatura do lado frio é cerca de -233 °C, necessária porque ele detecta calor.', 'Seu espelho tem cerca de 6 vezes a área coletora do Hubble.', 'Detectou galáxias que existiam menos de 300 milhões de anos após o Big Bang.', 'A precisão do lançamento economizou combustível: ele pode operar por mais de 20 anos.'],
   },
   {
-    id: 'chandra', name: 'Chandra', group: S, kind: 'Telescópio espacial · raios X', color: '#c89bff',
+    id: 'chandra', name: 'Chandra', group: S, norad: 25867, kind: 'Telescópio espacial · raios X', color: '#c89bff',
     type: 'ellip', orbit: { a: 14, ecc: 0.75, incl: 0.9, node: 1.5, period: 26 }, model: 'xray', s: 0.16, size: 'espelhos de 1,2 m',
     about: 'O principal telescópio de raios X da NASA. Os raios X vêm de locais extremamente quentes e energéticos, como buracos negros, estrelas explodindo e aglomerados de galáxias. Sua órbita muito alongada o leva a 1/3 do caminho até a Lua.',
     stats: [['Lançamento', '23 de julho de 1999'], ['Agência', 'NASA'], ['Espelhos', '4 pares aninhados'], ['Luz observada', 'Raios X'], ['Órbita', '16.000 a 133.000 km · 64 h'], ['Situação', 'Ativo']],
     facts: ['Foi batizado em homenagem ao astrofísico Subrahmanyan Chandrasekhar.', 'Suas imagens do Aglomerado da Bala forneceram uma das melhores evidências da matéria escura.', 'Tem resolução tão fina que distinguiria uma moeda a mais de 8 km de distância.'],
   },
   {
-    id: 'xmm', name: 'XMM-Newton', group: S, kind: 'Telescópio espacial · raios X', color: '#b58cf0',
+    id: 'xmm', name: 'XMM-Newton', group: S, norad: 25989, kind: 'Telescópio espacial · raios X', color: '#b58cf0',
     type: 'ellip', orbit: { a: 12, ecc: 0.72, incl: 0.7, node: 3.5, period: 22 }, model: 'xray', s: 0.16, size: '3 telescópios de 58 espelhos',
     about: 'O grande telescópio de raios X da ESA. Seus três telescópios com dezenas de espelhos aninhados coletam muito mais luz que o Chandra, ideal para ver objetos fracos e fazer espectros detalhados.',
     stats: [['Lançamento', '10 de dezembro de 1999'], ['Agência', 'ESA'], ['Espelhos', '3 × 58 camadas'], ['Luz observada', 'Raios X'], ['Órbita', '≈ 48 h, muito elíptica'], ['Situação', 'Ativo']],
     facts: ['Funciona há mais de 25 anos, muito além dos 2 anos planejados.', 'Ajudou a revelar o gás quente que preenche aglomerados de galáxias.'],
   },
   {
-    id: 'fermi', name: 'Fermi', group: S, kind: 'Telescópio espacial · raios gama', color: '#ff7fa8',
+    id: 'fermi', name: 'Fermi', group: S, norad: 33053, kind: 'Telescópio espacial · raios gama', color: '#ff7fa8',
     type: 'leo', orbit: { a: 4.3, incl: 0.447, node: 2.0, period: 6.5 }, model: 'generic', s: 0.16, size: 'detector LAT de 1,8 m',
     about: 'Observa a luz mais energética do universo: raios gama, produzidos por pulsares, buracos negros em atividade e explosões estelares. Varre o céu inteiro a cada 3 horas.',
     stats: [['Lançamento', '11 de junho de 2008'], ['Agência', 'NASA'], ['Instrumentos', 'LAT e GBM'], ['Luz observada', 'Raios gama'], ['Órbita', '≈ 550 km · 96 min'], ['Situação', 'Ativo']],
     facts: ['Descobriu as "Bolhas de Fermi": enormes estruturas de raios gama saindo do centro da Via Láctea.', 'Já detectou milhares de fontes de raios gama.'],
   },
   {
-    id: 'swift', name: 'Swift', group: S, kind: 'Telescópio espacial · explosões de raios gama', color: '#ff9fb8',
+    id: 'swift', name: 'Swift', group: S, norad: 28485, kind: 'Telescópio espacial · explosões de raios gama', color: '#ff9fb8',
     type: 'leo', orbit: { a: 4.1, incl: 0.36, node: 4.0, period: 6 }, model: 'generic', s: 0.15, size: '3 telescópios',
     about: 'Um caçador de explosões de raios gama (GRBs), as explosões mais brilhantes do universo. Ao detectar uma, gira em segundos para apontar telescópios de raios X e luz visível para o local.',
     stats: [['Lançamento', '20 de novembro de 2004'], ['Agência', 'NASA'], ['Luz observada', 'Gama, raios X, UV, visível'], ['Órbita', '≈ 600 km · 96 min'], ['Situação', 'Ativo, com órbita decaindo']],
     facts: ['Pode girar para um novo alvo em menos de 90 segundos.', 'Sua órbita está decaindo e a NASA estuda formas de elevá-la.'],
   },
   {
-    id: 'nustar', name: 'NuSTAR', group: S, kind: 'Telescópio espacial · raios X de alta energia', color: '#d6a8ff',
+    id: 'nustar', name: 'NuSTAR', group: S, norad: 38358, kind: 'Telescópio espacial · raios X de alta energia', color: '#d6a8ff',
     type: 'leo', orbit: { a: 4.0, incl: 0.1, node: 5.0, period: 6 }, model: 'xray', s: 0.15, size: 'mastro de 10 m',
     about: 'O primeiro telescópio capaz de focar raios X de alta energia, o que dá imagens nítidas de buracos negros e de restos de supernovas. Um mastro de 10 m separa os espelhos do detector.',
     stats: [['Lançamento', '13 de junho de 2012'], ['Agência', 'NASA'], ['Luz observada', 'Raios X duros (3 a 79 keV)'], ['Órbita', '≈ 600 km · quase equatorial'], ['Situação', 'Ativo']],
     facts: ['Foi lançado por um foguete Pegasus, que sai de dentro de um avião em voo.', 'O mastro se estende no espaço como uma sanfona depois do lançamento.'],
   },
   {
-    id: 'tess', name: 'TESS', group: S, kind: 'Telescópio espacial · caçador de exoplanetas', color: '#7fe0a8',
+    id: 'tess', name: 'TESS', group: S, norad: 43435, kind: 'Telescópio espacial · caçador de exoplanetas', color: '#7fe0a8',
     type: 'ellip', orbit: { a: 18, ecc: 0.6, incl: 0.6, node: 0.5, period: 30 }, model: 'generic', s: 0.16, size: '4 câmeras de 10,5 cm',
     about: 'Procura planetas ao redor de estrelas brilhantes vizinhas, medindo o leve escurecimento quando um planeta passa na frente da estrela (trânsito). Sua órbita é a mais estável possível: dá duas voltas por órbita da Lua.',
     stats: [['Lançamento', '18 de abril de 2018'], ['Agência', 'NASA'], ['Câmeras', '4 de campo amplo'], ['Órbita', '108.000 a 375.000 km · 13,7 dias'], ['Resultados', 'Milhares de candidatos a planeta'], ['Situação', 'Ativo']],

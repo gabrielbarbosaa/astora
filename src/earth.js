@@ -3,7 +3,8 @@ import * as THREE from 'three';
 // Terra realista: mapa de cores, relevo, oceano brilhante, nuvens e luzes de cidade só no lado noturno.
 // Texturas em /public/textures/earth (carregadas uma vez e compartilhadas entre os níveis).
 const BASE = import.meta.env.BASE_URL + 'textures/earth/';
-const geo = new THREE.SphereGeometry(1, 96, 64);
+const lowPower = matchMedia('(pointer: coarse)').matches;
+const geo = lowPower ? new THREE.SphereGeometry(1, 64, 48) : new THREE.SphereGeometry(1, 96, 64);
 
 let shared = null;
 function loadMaps() {

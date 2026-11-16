@@ -142,7 +142,7 @@ export function buildSolar() {
       mesh.add(glow);
     }
 
-    const e = { data: d, R, holder, mesh, pivot, orbit, ecc: d.ecc ?? 0, period: d.years ? periodOf(d.years) : 0, angle: Math.random() * Math.PI * 2, parent: null, moons: [], moonSystem: null, extent: R };
+    const e = { data: d, R, holder, mesh, pivot, tiltG, orbit, ecc: d.ecc ?? 0, period: d.years ? periodOf(d.years) : 0, angle: Math.random() * Math.PI * 2, parent: null, moons: [], moonSystem: null, extent: R };
     if (d.au) {
       const line = d.ecc ? ellipseLine(orbit, d.ecc) : circle(orbit, 0x5f7fb8, 0.28, 360);
       pivot.add(line); orbitLines.push(line);
@@ -193,7 +193,7 @@ export function buildSolar() {
   for (const e of entries) if (e.orbit || e.isMoon) place(e);
 
   // ---- Modo "Hoje": posições reais dos planetas (Astronomy Engine, carregado só quando ativado) ----
-  const real = { on: false, date: new Date(), Astro: null };
+  const real = { on: false, date: new Date(), Astro: null, rate: 1 / 86400, eff: 0, hud: null }; // padrão: tempo real (1 segundo por segundo); rate = dias simulados por segundo
   const BODY = { mercurio: 'Mercury', venus: 'Venus', terra: 'Earth', marte: 'Mars', jupiter: 'Jupiter', saturno: 'Saturn', urano: 'Uranus', netuno: 'Neptune', plutao: 'Pluto' };
   const cE = Math.cos((23.4392911 * Math.PI) / 180), sE = Math.sin((23.4392911 * Math.PI) / 180);
   const HALLEY_T0 = Date.UTC(1986, 1, 9), HALLEY_P = 75.32 * 365.25 * 86400000; // periélio de 1986
@@ -226,20 +226,102 @@ export function buildSolar() {
       group.add(line); realLines.push(line);
     }
   }
-  const _m = new THREE.Vector3();
+  const _m = new THREE.Vector3(), _dir = new THREE.Vector3(), _z = new THREE.Vector3(0, 0, 1);
+
+  // ---- Terra real: eixo inclinado e rotação pelo tempo sideral; sombra da Lua; fases e eclipses ----
+  const KM_AU = 149597870.7, R_EARTH_KM = 6371, R_MOON_KM = 1737, R_SUN_KM = 696000;
+  const EPS = (23.4392911 * Math.PI) / 180;
+  const earthE = byId.terra;
+  const ERA = (date) => { // ângulo de rotação da Terra (radianos)
+    const jd = date.getTime() / 86400000 + 2440587.5;
+    return 2 * Math.PI * ((0.779057273264 + 1.00273781191135448 * (jd - 2451545)) % 1);
+  };
+  const spot = new THREE.Mesh(new THREE.CircleGeometry(1, 32), new THREE.MeshBasicMaterial({
+    map: (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 128;
+      const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(0,0,0,0.95)'); gr.addColorStop(0.1, 'rgba(0,0,0,0.85)'); gr.addColorStop(0.17, 'rgba(0,0,0,0.4)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+      return new THREE.CanvasTexture(c);
+    })(), transparent: true, depthWrite: false,
+  }));
+  spot.visible = false;
+  earthE.holder.add(spot);
+  const PHASES = [['Lua nova', '🌑'], ['Lua crescente', '🌒'], ['Quarto crescente', '🌓'], ['Crescente gibosa', '🌔'], ['Lua cheia', '🌕'], ['Minguante gibosa', '🌖'], ['Quarto minguante', '🌗'], ['Lua minguante', '🌘']];
+  const clamp01 = (x) => Math.min(1, Math.max(0, x));
+
   function applyReal() {
     const A = real.Astro, d = real.date;
     for (const e of realBodies) {
       const v = safeVec(A.Body[BODY[e.data.id]], d);
       if (v) toScene(v, AU, e.holder.position);
     }
-    if (moonE) {
-      try {
-        toScene(A.GeoMoon(d), 1, _m).normalize(); // só a direção real da Lua; a distância na cena é estilizada
-        moonE.mesh.position.copy(_m).multiplyScalar(moonE.orbit);
-        moonE.angle = Math.atan2(-_m.z, _m.x);
-      } catch { /* fora do intervalo */ }
-    }
+    // eixo da Terra inclinado como na realidade; a rotação só segue o relógio quando o tempo passa devagar (senão pisca)
+    earthE.tiltG.rotation.set(-EPS, 0, 0);
+    if (real.eff <= 1.5) earthE.mesh.rotation.y = ERA(d);
+    if (!moonE) return;
+    try {
+      const m = A.GeoMoon(d), E = A.HelioVector(A.Body.Earth, d);
+      toScene(m, 1, _m).normalize(); // só a direção real da Lua; a distância na cena é estilizada
+      moonE.mesh.position.copy(_m).multiplyScalar(moonE.orbit);
+      moonE.angle = Math.atan2(-_m.z, _m.x);
+
+      // geometria Sol-Terra-Lua em km (vetores equatoriais J2000)
+      const sd = Math.hypot(E.x, E.y, E.z), sx = -E.x / sd, sy = -E.y / sd, sz = -E.z / sd; // direção Terra->Sol
+      const mx = m.x * KM_AU, my = m.y * KM_AU, mz = m.z * KM_AU, md2 = mx * mx + my * my + mz * mz;
+      const t = mx * sx + my * sy + mz * sz, rho = Math.sqrt(Math.max(0, md2 - t * t));
+      let event = '';
+
+      // eclipse lunar: a Lua entra no cone de sombra da Terra
+      let cu = 0, cp = 0;
+      if (t < 0) {
+        const L = -t, Ru = R_EARTH_KM - (L * (R_SUN_KM - R_EARTH_KM)) / KM_AU, Rp = R_EARTH_KM + (L * (R_SUN_KM + R_EARTH_KM)) / KM_AU;
+        cu = clamp01((Ru + R_MOON_KM - rho) / (2 * R_MOON_KM));
+        cp = clamp01((Rp + R_MOON_KM - rho) / (2 * R_MOON_KM));
+        if (cu > 0.04) event = cu > 0.97 ? 'Eclipse lunar total' : 'Eclipse lunar parcial';
+      }
+      const dim = 1 - 0.3 * cp;
+      moonE.mesh.material.color.setRGB(dim + (0.3 - dim) * cu, dim + (0.1 - dim) * cu, dim + (0.06 - dim) * cu); // cobre avermelhado no total
+
+      // eclipse solar: onde a sombra da Lua cai sobre a Terra
+      let strength = 0;
+      if (t > 0 && rho < R_EARTH_KM + 3600) {
+        let px, py, pz;
+        if (rho < R_EARTH_KM) {
+          const tau = t - Math.sqrt(R_EARTH_KM * R_EARTH_KM - rho * rho);
+          px = mx - tau * sx; py = my - tau * sy; pz = mz - tau * sz; strength = 1;
+          event = 'Sombra da Lua sobre a Terra (eclipse solar)';
+        } else {
+          px = mx - t * sx; py = my - t * sy; pz = mz - t * sz; strength = 0.8 * clamp01(1 - (rho - R_EARTH_KM) / 3600);
+        }
+        const pl = Math.hypot(px, py, pz) || 1;
+        toScene({ x: px / pl, y: py / pl, z: pz / pl }, 1, _dir).normalize();
+        spot.position.copy(_dir).multiplyScalar(earthE.R * 1.004);
+        spot.quaternion.setFromUnitVectors(_z, _dir);
+        spot.scale.setScalar(earthE.R * 0.55); // penumbra ≈ 3.500 km
+        spot.material.opacity = strength;
+      }
+      spot.visible = strength > 0.02;
+
+      const ph = A.MoonPhase(d);
+      // os "quartos" valem só perto dos 90° e 270°; entre eles a Lua é crescente/minguante ou gibosa
+      const [name, emoji] = PHASES[ph < 3 || ph >= 357 ? 0 : ph < 87 ? 1 : ph < 93 ? 2 : ph < 177 ? 3 : ph < 183 ? 4 : ph < 267 ? 5 : ph < 273 ? 6 : 7];
+      real.hud = { text: `${emoji} ${name} · ${Math.round(((1 - Math.cos((ph * Math.PI) / 180)) / 2) * 100)}% iluminada`, event };
+    } catch (err) { if (!real.warned) { real.warned = true; console.warn('Modo Hoje: falha ao calcular Lua/eclipses', err); } }
+  }
+
+  // próximos eclipses (3 anos à frente), para o seletor da barra do tempo
+  function eclipseList() {
+    const A = real.Astro, out = [], kind = { total: 'total', partial: 'parcial', annular: 'anular', penumbral: 'penumbral' };
+    try {
+      let l = A.SearchLunarEclipse(real.date), s = A.SearchGlobalSolarEclipse(real.date);
+      for (let i = 0; i < 4; i++) {
+        out.push({ label: `Lunar ${kind[l.kind] ?? l.kind}`, date: l.peak.date });
+        out.push({ label: `Solar ${kind[s.kind] ?? s.kind}`, date: s.peak.date });
+        l = A.NextLunarEclipse(l.peak); s = A.NextGlobalSolarEclipse(s.peak);
+      }
+    } catch { /* sem dados */ }
+    return out.sort((a, b) => a.date - b.date);
   }
   async function setRealTime(on, date) {
     if (on && !real.Astro) real.Astro = await import('astronomy-engine');
@@ -252,7 +334,9 @@ export function buildSolar() {
       applyReal();
     } else {
       for (const e of realBodies) { e.pivot.rotation.x = e.data.tilt; e.realDriven = false; place(e); }
-      if (moonE) { moonE.realDriven = false; place(moonE); }
+      earthE.tiltG.rotation.set(0, 0, earthE.data.axisTilt ?? 0); // volta ao eixo estilizado
+      spot.visible = false; real.hud = null;
+      if (moonE) { moonE.realDriven = false; place(moonE); moonE.mesh.material.color.setRGB(1, 1, 1); }
     }
     applyOrbitVisibility();
   }
@@ -264,10 +348,16 @@ export function buildSolar() {
     setOrbits: (v) => { orbitsOn = v; applyOrbitVisibility(); },
     setRealTime,
     setDate(d) { real.date = new Date(d); if (real.on) applyReal(); },
+    setRate(r) { real.rate = r; },
     getDate: () => (real.on ? real.date : null),
+    getHud: () => (real.on ? real.hud : null),
+    getEclipses: () => (real.on ? eclipseList() : []),
     activeSystem(p) { for (const e of planets) if (e.moonSystem) e.moonSystem.visible = e === p; },
-    update(k, dt, camera) {
-      const dDays = real.on ? k * 10 : 0; // no modo real: 1x = 10 dias por segundo
+    update(k, dt, camera, elapsed, rawDt = dt) {
+      // no modo real: dias simulados por segundo = rate × velocidade, seguindo o relógio de verdade (sem o limite por quadro)
+      const spd = dt > 0 ? k / dt : 0;
+      const dDays = real.on ? spd * Math.min(rawDt, 5) * real.rate : 0;
+      real.eff = spd * real.rate;
       if (real.on) real.date = new Date(real.date.getTime() + dDays * 86400000);
       for (const e of entries) {
         if (e.earthFX) { // o Sol está na origem: a direção até ele é o oposto da posição da Terra

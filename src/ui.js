@@ -5,18 +5,18 @@ const $ = (s) => document.querySelector(s);
 const KM_EARTH = 12742;
 const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: n < 10 ? 2 : 1 });
 
-export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause, onSpeed, onOrbits, onTour, onToday, onDate }) {
+export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause, onSpeed, onOrbits, onTour, onToday, onDate, onRate, onLive, onStarlink, onSky }) {
   const panel = $('#panel');
   const levelsNav = $('#levels');
   const drawer = $('#drawer'), search = $('#search'), listEl = $('#list'), exploreBtn = $('#explore');
-  let list = [], levelId = null, activeId = null;
+  let list = [], levelId = null, activeId = null, liveTimer = 0;
   let currentPlanet = null;
 
   // seletor de escala
   const levelBtns = {};
   levelsMeta.forEach((l, i) => {
     const b = document.createElement('button');
-    b.textContent = l.name; b.title = `${l.name} (${i + 1})`;
+    b.innerHTML = `<span class="full">${l.name}</span><span class="short">${l.short ?? l.name}</span>`; b.title = `${l.name} (${i + 1})`;
     b.onclick = () => onLevel(l.id);
     levelsNav.appendChild(b);
     levelBtns[l.id] = b;
@@ -89,14 +89,37 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
 
   // ---- tour e modo "Hoje" (tempo real) ----
   $('#tour-btn').onclick = () => onTour?.();
+  $('#sky-btn').onclick = () => onSky?.();
   const todayBtn = $('#today'), timebar = $('#timebar'), dateIn = $('#t-date'), presets = $('#t-presets');
   let todayOn = false;
   const refreshTimebar = () => { timebar.hidden = !(todayOn && levelId === 'solar'); todayBtn.classList.toggle('on', todayOn); };
-  todayBtn.onclick = () => { todayOn = !todayOn; refreshTimebar(); onToday?.(todayOn); };
+  todayBtn.onclick = () => {
+    todayOn = !todayOn; refreshTimebar();
+    if (todayOn) { $('#t-rate').value = '0.0000115741'; onRate?.(+$('#t-rate').value); } // sempre começa em tempo real
+    onToday?.(todayOn);
+  };
   const setDate = (d) => { if (!isNaN(d)) onDate?.(d); };
   dateIn.onchange = () => dateIn.value && setDate(new Date(dateIn.value + 'T12:00:00Z'));
   $('#t-today').onclick = () => setDate(new Date());
   presets.onchange = () => { if (presets.value) setDate(new Date(presets.value + 'T12:00:00Z')); presets.value = ''; };
+  // ---- modo "Ao vivo" (satélites reais no nível Telescópios) ----
+  const liveBtn = $('#live-btn'), livebar = $('#livebar'), starBtn = $('#l-starlink'), lClock = $('#l-clock'), lCount = $('#l-count');
+  let liveOn = false, starOn = false;
+  const refreshLive = () => { liveBtn.classList.toggle('on', liveOn); livebar.hidden = !(liveOn && levelId === 'telescopes'); };
+  liveBtn.onclick = () => { liveOn = !liveOn; refreshLive(); if (!liveOn) { starOn = false; starBtn.textContent = '+ Starlink'; starBtn.classList.remove('on'); } onLive?.(liveOn); };
+  starBtn.onclick = async () => {
+    starOn = !starOn;
+    starBtn.classList.toggle('on', starOn);
+    starBtn.textContent = starOn ? 'Starlink ✓' : '+ Starlink';
+    await onStarlink?.(starOn);
+  };
+  const rateSel = $('#t-rate'), eclSel = $('#t-eclipses'), moonHud = $('#t-moon');
+  rateSel.onchange = () => onRate?.(+rateSel.value);
+  // ao escolher um eclipse: vai para 3 horas antes do máximo, com 1 hora por segundo
+  eclSel.onchange = () => {
+    if (eclSel.value) { rateSel.value = '0.0416667'; onRate?.(+rateSel.value); setDate(new Date(+eclSel.value - 3 * 3600 * 1000)); }
+    eclSel.value = '';
+  };
 
   const step = (d) => {
     if (!currentPlanet || !list.length) return;
@@ -157,6 +180,16 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
   return {
     toast,
     forceTodayOff() { todayOn = false; refreshTimebar(); },
+    forceLiveOff() { liveOn = false; refreshLive(); },
+    setLiveInfo(i) {
+      if (!i) return;
+      lClock.textContent = i.now.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' });
+      lCount.textContent = `${i.count.toLocaleString('pt-BR')} satélites`;
+    },
+    setHud(h) { moonHud.innerHTML = h ? `${h.text}${h.event ? `<b>${h.event}</b>` : ''}` : ''; },
+    setEclipses(list = []) {
+      eclSel.innerHTML = '<option value="">Próximos eclipses…</option>' + list.map((e) => `<option value="${e.date.getTime()}">${e.label} · ${e.date.toLocaleDateString('pt-BR')}</option>`).join('');
+    },
     // mostra a data atual da simulação, sem atrapalhar quem está digitando
     setDateText(d) {
       if (document.activeElement === dateIn) return;
@@ -166,7 +199,9 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
     setLevel(id, newList) {
       levelId = id; list = newList;
       todayBtn.hidden = id !== 'solar';
+      liveBtn.hidden = id !== 'telescopes';
       refreshTimebar();
+      refreshLive();
       for (const k in levelBtns) levelBtns[k].classList.toggle('on', k === id);
       orb.style.display = id === 'solar' ? '' : 'none';
       search.value = '';
@@ -179,7 +214,7 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
     },
     show(b, parent) {
       panel.hidden = !b;
-      if (!b) { currentPlanet = null; return; }
+      if (!b) { currentPlanet = null; clearInterval(liveTimer); return; }
       currentPlanet = parent ?? b;
       const i = list.findIndex((x) => x.id === currentPlanet.id);
       $('#prev-n').textContent = list[(i - 1 + list.length) % list.length].name;
@@ -192,7 +227,14 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
       $('#p-compare').innerHTML = compare(b);
       const hi = b.stats.slice(0, 3).map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('');
       $('#tab-about').innerHTML = `<p>${b.about}</p><div class="stats-hi">${hi}</div><div class="didyou"><span>✦ Você sabia?</span>${b.facts[0]}</div>`;
-      $('#tab-data').innerHTML = `<div class="grid">${b.stats.map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>`;
+      // dados "ao vivo" (ex.: altitude da ISS agora) são atualizados a cada segundo enquanto o painel está aberto
+      clearInterval(liveTimer);
+      const drawData = () => {
+        const all = b.stats.concat(b.live?.() ?? []);
+        $('#tab-data').innerHTML = `<div class="grid">${all.map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>`;
+      };
+      drawData();
+      if (b.live) liveTimer = setInterval(drawData, 1000);
       $('#tab-facts').innerHTML = `<ul>${b.facts.map((f) => `<li>${f}</li>`).join('')}</ul>`;
       gotoBox(b);
       moonsBox(b, parent);

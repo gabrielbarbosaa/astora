@@ -127,6 +127,26 @@ input[type=range] { width: 100px; accent-color: var(--accent); }
 .credits a { color: var(--accent); }
 .credits .muted { color: var(--muted); font-size: 12px; }
 
+/* ---- Meu céu (planetário) ---- */
+.sky { position: fixed; inset: 0; z-index: 20; background: #02030a; }
+.sky[hidden] { display: none; }
+#sky-canvas { position: absolute; inset: 0; display: block; touch-action: manipulation; cursor: pointer; }
+.sky-top { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 14px 64px 10px 18px; background: linear-gradient(rgba(2, 3, 10, .85), transparent); }
+.sky-top strong { font-size: 18px; letter-spacing: .24em; text-transform: uppercase; font-weight: 600; }
+.sky-place { color: var(--accent); font-size: 14px; }
+.sky-top button, .sky-top select, .sky-ctl button { padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--glass); color: var(--text); font: inherit; font-size: 13px; color-scheme: dark; }
+.sky-top button:hover, .sky-ctl button:hover { border-color: var(--accent); }
+.sky-top .icon-btn { position: absolute; top: 10px; right: 14px; padding: 0; border: 0; background: none; font-size: 28px; }
+.sky-bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 18px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(2, 3, 10, .92)); display: grid; gap: 10px; }
+.sky-info { font-size: 14px; color: #dfe8ff; text-align: center; min-height: 20px; }
+.sky-info b { color: #ffc857; font-weight: 600; }
+.sky-info .sky-dim { color: var(--muted); }
+.sky-ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; font-size: 13px; color: var(--muted); }
+.sky-ctl input[type=range] { width: min(260px, 40vw); }
+.sky-ctl label { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+#sky-when { min-width: 120px; color: var(--text); }
+body.sky-open #labels, body.sky-open .levels { display: none; }
+
 /* ---- aba Brincar (calculadoras) ---- */
 .tabs button { padding: 6px 2px; font-size: 12.5px; }
 .calc { display: grid; gap: 12px; }
@@ -155,14 +175,33 @@ body.touring .drawer { display: none; }
 @media (max-width: 720px) { body.touring .panel { display: none; } .tour { bottom: 108px; } }
 
 /* ---- barra do tempo (modo Hoje) ---- */
-.timebar { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 7; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 99px; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--accent); max-width: calc(100vw - 20px); }
+.timebar { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 7; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 8px; padding: 7px 12px; border-radius: 22px; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--accent); max-width: calc(100vw - 20px); }
 .timebar[hidden] { display: none; }
 .timebar .tb-label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
 .timebar input, .timebar select { padding: 5px 8px; border-radius: 99px; border: 1px solid var(--line); background: rgba(0, 0, 0, .35); color: var(--text); font: inherit; font-size: 13px; color-scheme: dark; min-width: 0; }
+@media (min-width: 721px) { body:has(#panel:not([hidden])) .timebar { left: calc(50% - 190px); } } /* não cobre o painel de detalhes */
+.tb-moon { font-size: 13px; color: #dfe8ff; white-space: nowrap; }
+.tb-moon b { color: #ffc857; font-weight: 500; margin-left: 6px; }
 .timebar button { padding: 5px 12px; border-radius: 99px; border: 1px solid var(--line); background: rgba(255, 255, 255, .07); font-size: 13px; }
 .timebar button:hover { border-color: var(--accent); }
 
+.levels .short { display: none; }
 @media (max-width: 1000px) { .levels { top: 60px; } .brand p { display: none; } .timebar { top: 108px; } }
+@media (max-width: 720px) {
+  .levels .full { display: none; }
+  .levels .short { display: inline; }
+  .levels { gap: 2px; padding: 3px; }
+  .levels button { padding: 7px 8px; font-size: 12px; }
+  .timebar .tb-label { display: none; }
+  .timebar select { max-width: 150px; }
+}
+/* alvos de toque maiores em telas sensíveis ao toque */
+@media (pointer: coarse) {
+  .controls button, .explore, .timebar button, .tour-btns button, .pn button, .levels button { min-height: 42px; }
+  .row { padding: 11px 10px; }
+  .tabs button { min-height: 38px; }
+  .icon-btn { width: 40px; height: 40px; }
+}
 @media (max-width: 720px) {
   .brand p { display: none; }
   .panel { top: auto; left: 8px; right: 8px; bottom: 108px; width: auto; max-height: 46vh; border-radius: 18px; }

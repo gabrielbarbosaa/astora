@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { telescopes } from '../data/telescopes.js';
 import { glowTexture, dotTexture } from '../textures.js';
 import { createEarth } from '../earth.js';
+import { createLive } from '../live.js';
 import { circle, makeMarker, pickMesh } from '../engine/helpers.js';
 
 const RE = 3; // raio da Terra na cena
@@ -59,6 +60,9 @@ export function buildTelescopes() {
   const group = new THREE.Group();
   const entries = [], byId = {};
   const dotTex = dotTexture();
+  const live = createLive(group);      // satélites reais (CelesTrak + SGP4), carregados sob demanda
+  let liveOn = false, trailAt = 0;
+  const _sun = new THREE.Vector3();
 
   // Terra (estilizada) com atmosfera, iluminada pelo Sol vindo de +X
   const earthPivot = new THREE.Group();
@@ -118,14 +122,15 @@ export function buildTelescopes() {
     } else {
       const s = d.s ?? 0.16;
       const holder = new THREE.Group();
-      let pivot = group;
+      let pivot = group, orbitLine = null;
       const col = new THREE.Color(d.color).getHex();
       if (d.type === 'leo' || d.type === 'ellip') {
         pivot = new THREE.Group();
         pivot.rotation.order = 'YXZ';
         pivot.rotation.set(d.orbit.incl, d.orbit.node, 0);
         group.add(pivot);
-        pivot.add(d.type === 'leo' ? circle(d.orbit.a, col, 0.25, 128) : ellipseLine(d.orbit.a, d.orbit.ecc, col, 0.28));
+        orbitLine = d.type === 'leo' ? circle(d.orbit.a, col, 0.25, 128) : ellipseLine(d.orbit.a, d.orbit.ecc, col, 0.28);
+        pivot.add(orbitLine);
       } else if (d.type === 'halo') { // órbita em halo ao redor de L1/L2 (plano YZ)
         const pts = [];
         for (let i = 0; i < 90; i++) { const t = (i / 90) * Math.PI * 2; pts.push(new THREE.Vector3(d.orbit.center, d.orbit.h * Math.cos(t), d.orbit.h * 1.3 * Math.sin(t))); }
@@ -137,12 +142,19 @@ export function buildTelescopes() {
       holder.add(model);
       const mesh = pickMesh(s * 1.5, d.id);
       holder.add(mesh);
-      const far = d.type !== 'leo';
+      const far = d.type !== 'leo' && d.type !== 'live';
       const mk = makeMarker(dotTex, d.color, far ? 0.014 : 0.01);
       mk.userData.id = d.id;
       holder.add(mk);
-      Object.assign(e, { R: s * 1.2, mesh, holder, marker: mk, markerDist: far ? 12 : 5, markerMax: far ? Infinity : 40, labelMax: far ? 220 : 34, angle: Math.random() * Math.PI * 2, model, extent: s * 1.2 });
-      moving.push(e);
+      Object.assign(e, { R: s * 1.2, mesh, holder, pivot, orbitLine, marker: mk, markerDist: far ? 12 : 5, markerMax: far ? Infinity : 40, labelMax: far ? 220 : 34, angle: Math.random() * Math.PI * 2, model, extent: s * 1.2 });
+      if (d.type === 'live') { e.hide = true; holder.visible = false; } // a ISS só existe no modo ao vivo
+      else moving.push(e);
+      if (d.norad) { // dados que mudam a cada segundo, mostrados no painel
+        d.live = () => {
+          const i = live.info(d.norad, new Date());
+          return i ? [['Altitude agora', `${Math.round(i.alt).toLocaleString('pt-BR')} km`], ['Velocidade agora', `${Math.round(i.kmh).toLocaleString('pt-BR')} km/h`], ['Sobre', `${i.lat.toFixed(1)}° lat, ${i.lon.toFixed(1)}° lon`]] : [];
+        };
+      }
     }
     entries.push(e); byId[d.id] = e;
   }
@@ -152,12 +164,63 @@ export function buildTelescopes() {
     home: new THREE.Vector3(-4, 40, 92), target: new THREE.Vector3(),
     near: 0.02, far: 14000, minDist: 1, maxDist: 260,
     activeSystem() {},
+    // ---- modo "Ao vivo": satélites reais, Terra girando no ritmo real e Sol na posição real ----
+    async setLive(on) {
+      if (on) {
+        const sats = Promise.all([
+          live.addGroup('GROUP=stations', '#ffffff', { interval: 300, size: 0.05, minPx: 3 }),
+          live.addGroup('GROUP=science', '#9fd0ff', { interval: 300, size: 0.04, minPx: 2.4 }),
+          live.addGroup('GROUP=visual', '#ffe9a8', { interval: 500, size: 0.03, minPx: 2 }),
+          live.addGroup('GROUP=gps-ops', '#7fe0a8', { interval: 1500, size: 0.03, minPx: 2.4 }),
+          live.addGroup('GROUP=geo', '#ffb35a', { interval: 3000, size: 0.03, minPx: 1.8 }),
+          live.addCatalog(28485), live.addCatalog(43435), // Swift e TESS
+        ]);
+        await sats;
+        liveOn = true; trailAt = 0;
+        for (const e of entries) {
+          if (!e.data.norad || !live.has(e.data.norad)) continue;
+          e.liveOK = true;
+          if (e.pivot) e.pivot.rotation.set(0, 0, 0);
+          if (e.orbitLine) e.orbitLine.visible = false;
+          if (e.data.type === 'live') { e.hide = false; e.holder.visible = true; }
+        }
+      } else {
+        liveOn = false;
+        for (const q of [...live.layers.keys()]) live.removeGroup(q);
+        for (const e of entries) {
+          if (!e.liveOK) continue;
+          e.liveOK = false;
+          if (e.pivot && e.data.orbit?.incl != null) e.pivot.rotation.set(e.data.orbit.incl, e.data.orbit.node, 0);
+          if (e.orbitLine) e.orbitLine.visible = true;
+          if (e.data.type === 'live') { e.hide = true; e.holder.visible = false; }
+        }
+        earthPivot.rotation.set(0, 0, 0);
+        sunLight.position.set(100, 18, 30); sunGlow.position.set(170, 24, 50);
+      }
+    },
+    async setStarlink(on) { // opcional: ~9.000 satélites (download maior, ~2 MB)
+      if (on) return live.addGroup('GROUP=starlink', '#7fd0ff', { interval: 1500, size: 0.02, minPx: 1.4, cache: false });
+      live.removeGroup('GROUP=starlink'); return 0;
+    },
+    getLiveInfo: () => (liveOn ? { count: live.count(), now: new Date() } : null),
     update(k, dt, camera) {
-      earthPivot.rotation.y += k * 0.06;
-      earthFX.setSun(SUN_DIR, camera);
+      if (liveOn) {
+        const now = new Date();
+        earthPivot.rotation.y = live.gmst(now);               // a Terra gira no ritmo real
+        live.sunDir(now, _sun);
+        earthFX.setSun(_sun, camera);
+        sunLight.position.copy(_sun).multiplyScalar(100);
+        sunGlow.position.copy(_sun).multiplyScalar(180);
+        live.update(now, performance.now());
+        for (const e of entries) if (e.liveOK) live.posOf(e.data.norad, now, e.holder.position);
+      } else {
+        earthPivot.rotation.y += k * 0.06;
+        earthFX.setSun(SUN_DIR, camera);
+      }
       earthFX.drift(k);
       moonPivot.rotation.y += k * 0.04;
       for (const e of moving) {
+        if (liveOn && e.liveOK) { e.model.rotation.y += k * 0.3; continue; }
         const d = e.data, o = d.orbit;
         e.angle += k * 2 * Math.PI / (o?.period ?? 60);
         if (d.type === 'leo') e.holder.position.set(o.a * Math.cos(e.angle), 0, -o.a * Math.sin(e.angle));
