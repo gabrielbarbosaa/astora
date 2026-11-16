@@ -59,6 +59,16 @@ li::before { content: '✦'; position: absolute; left: 14px; color: #ffc857; }
 .stat b { display: block; font-size: 15px; font-weight: 600; margin-top: 2px; }
 .didyou { margin-top: 14px; padding: 12px 14px; border-radius: 12px; font-size: 14px; color: #e3e9fb; background: linear-gradient(135deg, rgba(255, 200, 87, .14), rgba(255, 200, 87, .03)); border: 1px solid rgba(255, 200, 87, .25); }
 .didyou span { display: block; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #ffc857; margin-bottom: 4px; }
+#fade { position: fixed; inset: 0; z-index: 15; background: #02030a; opacity: 0; pointer-events: none; transition: opacity .38s ease; }
+#fade.on { opacity: 1; pointer-events: auto; }
+.levels { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 7; display: flex; gap: 4px; padding: 4px; background: var(--glass); border: 1px solid var(--line); border-radius: 99px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); max-width: calc(100vw - 24px); overflow-x: auto; scrollbar-width: none; }
+.levels button { padding: 6px 14px; border-radius: 99px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.levels button:hover { color: var(--text); }
+.levels button.on { background: rgba(106, 168, 255, .28); color: var(--text); }
+.goto { display: grid; gap: 8px; margin-top: 16px; }
+.goto:empty { display: none; }
+.goto button { padding: 10px 14px; border-radius: 12px; font-size: 14px; text-align: left; background: color-mix(in srgb, var(--c) 18%, transparent); border: 1px solid var(--c); }
+.goto button:hover { background: color-mix(in srgb, var(--c) 32%, transparent); }
 .moons { margin-top: 16px; }
 .moons h3 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
 .moons div { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -82,6 +92,7 @@ li::before { content: '✦'; position: absolute; left: 14px; color: #ffc857; }
 .speed { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
 input[type=range] { width: 100px; accent-color: var(--accent); }
 
+@media (max-width: 1000px) { .levels { top: 60px; } .brand p { display: none; } }
 @media (max-width: 720px) {
   .brand p { display: none; }
   .panel { top: auto; left: 8px; right: 8px; bottom: 108px; width: auto; max-height: 46vh; border-radius: 18px; }

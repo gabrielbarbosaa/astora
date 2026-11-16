@@ -5,6 +5,7 @@
 export const bodies = [
   {
     id: 'sol', name: 'Sol', kind: 'Estrela', color: '#ffb347', km: 1391000, au: 0, years: 0, tilt: 0, spin: 0.03, star: true,
+    goto: [{ level: 'stars', label: 'Ver as estrelas vizinhas' }, { level: 'galaxy', label: 'Ver o Sol na Via Láctea' }],
     about: 'A estrela do nosso sistema, uma anã amarela que concentra 99,86% de toda a massa do Sistema Solar. Funde hidrogênio em hélio no núcleo, liberando a energia que sustenta a vida na Terra. Aqui ele aparece menor que o real para que os planetas internos caibam na cena.',
     stats: [['Diâmetro', '1,39 milhão km'], ['Massa', '333.000 × Terra'], ['Idade', '4,6 bilhões de anos'], ['Núcleo', '15 milhões °C'], ['Superfície', '5.500 °C']],
     facts: ['A luz leva cerca de 8 minutos e 20 segundos para chegar até nós.', 'Caberiam mais de 1 milhão de Terras dentro do Sol.', 'Daqui a ~5 bilhões de anos ele se tornará uma gigante vermelha.', 'Ele leva cerca de 230 milhões de anos para dar uma volta ao redor da Via Láctea.'],
@@ -50,6 +51,20 @@ export const bodies = [
         stats: [['Diâmetro', '12 km'], ['Órbita', '30,3 horas'], ['Distância de Marte', '23.460 km']],
         facts: ['Vista de Marte, parece apenas uma estrela brilhante.', 'Ambas as luas podem ser asteroides capturados.'] },
     ],
+  },
+  {
+    id: 'ceres', name: 'Ceres', kind: 'Planeta anão', color: '#9a9188', km: 940, au: 2.77, years: 4.6, tilt: 0.185, spin: 0.2, axisTilt: 0.07,
+    about: 'O maior objeto do cinturão de asteroides e o único planeta anão do Sistema Solar interno. Concentra cerca de um terço de toda a massa do cinturão.',
+    stats: [['Diâmetro', '940 km'], ['Distância do Sol', '414 milhões km'], ['Ano', '4,6 anos'], ['Dia', '9 horas'], ['Temp. média', '-105 °C']],
+    facts: ['Foi descoberto em 1801 e considerado um planeta por cerca de 50 anos.', 'As manchas brilhantes na cratera Occator são depósitos de sais.', 'A sonda Dawn a orbitou entre 2015 e 2018.'],
+    moons: [],
+  },
+  {
+    id: 'asteroides', name: 'Cinturão de Asteroides', kind: 'Região', color: '#b9a88f',
+    belt: { inner: 2.2, outer: 3.2, count: 3500, thick: 0.05, size: 0.11 }, size: '2,2 a 3,2 UA do Sol',
+    about: 'Uma região entre Marte e Júpiter com milhões de rochas e fragmentos metálicos, sobras da formação do Sistema Solar que nunca viraram um planeta por causa da gravidade de Júpiter.',
+    stats: [['Localização', '2,2 a 3,2 UA'], ['Asteroides > 1 km', '1 a 2 milhões'], ['Massa total', '≈ 4% da Lua'], ['Maiores', 'Ceres, Vesta, Palas']],
+    facts: ['Ao contrário dos filmes, os asteroides ficam muito distantes uns dos outros: as sondas passam sem risco de colisão.', 'A massa de todo o cinturão é menor que a da nossa Lua.', 'Aqui ele está bem mais denso do que na realidade, para ser visível.'],
   },
   {
     id: 'jupiter', name: 'Júpiter', kind: 'Gigante gasoso', color: '#d9a066', km: 139820, au: 5.203, years: 11.86, tilt: 0.02, spin: 0.3, axisTilt: 0.05,
@@ -134,5 +149,43 @@ export const bodies = [
         stats: [['Diâmetro', '2.707 km'], ['Órbita', '5,9 dias (retrógrada)'], ['Temperatura', '-235 °C']],
         facts: ['É um dos corpos mais frios já medidos no Sistema Solar.', 'Vai se aproximar de Netuno e se desfazer em anéis daqui a ~3,6 bilhões de anos.'] },
     ],
+  },
+  {
+    id: 'plutao', name: 'Plutão', kind: 'Planeta anão', color: '#c8b49a', km: 2377, au: 39.48, ecc: 0.249, years: 248, tilt: 0.30, spin: 0.05, axisTilt: 2.13,
+    about: 'Já foi o nono planeta e hoje é o planeta anão mais famoso. Sua órbita é bem alongada e inclinada, e por 20 anos de cada volta ele chega a ficar mais perto do Sol que Netuno.',
+    stats: [['Diâmetro', '2.377 km'], ['Distância do Sol', '4,4 a 7,4 bilhões km'], ['Ano', '248 anos'], ['Dia', '6,4 dias terrestres'], ['Luas', '5'], ['Temp.', '-230 °C']],
+    facts: ['A sonda New Horizons o sobrevoou em 2015 e revelou uma planície de gelo em forma de coração.', 'Plutão e Caronte são quase um sistema duplo: o centro de massa fica no espaço entre eles.', 'Perdeu a classificação de planeta em 2006.'],
+    moons: [
+      { id: 'caronte', name: 'Caronte', kind: 'Lua de Plutão', color: '#8a8580', km: 1212, a: 5, period: 9,
+        about: 'A maior lua de Plutão: tem metade do seu diâmetro. Os dois mostram sempre a mesma face um para o outro.',
+        stats: [['Diâmetro', '1.212 km'], ['Órbita', '6,4 dias'], ['Distância de Plutão', '19.600 km']],
+        facts: ['Seu polo norte tem uma mancha avermelhada chamada Mordor Macula.'] },
+    ],
+  },
+  {
+    id: 'kuiper', name: 'Cinturão de Kuiper', kind: 'Região', color: '#8fb3d9',
+    belt: { inner: 30, outer: 50, count: 4000, thick: 0.07, size: 0.7 }, size: '30 a 50 UA do Sol',
+    about: 'Uma região em forma de disco além de Netuno, cheia de corpos gelados. É de lá que vêm muitos cometas de período curto, e é onde vivem Plutão e outros planetas anões.',
+    stats: [['Localização', '30 a 50 UA'], ['Corpos > 100 km', '≈ 100.000'], ['Massa total', '≈ 1/10 da Terra'], ['Habitantes famosos', 'Plutão, Haumea, Makemake']],
+    facts: ['Recebeu o nome de Gerard Kuiper, mas a existência da região foi prevista por outros astrônomos.', 'A New Horizons visitou o objeto Arrokoth, um "boneco de neve" de gelo, em 2019.', 'Aqui ele está bem mais denso do que na realidade, para ser visível.'],
+  },
+  {
+    id: 'eris', name: 'Éris', kind: 'Planeta anão', color: '#d8d4cc', km: 2326, au: 67.7, ecc: 0.44, years: 559, tilt: 0.76, spin: 0.05, axisTilt: 0.1,
+    about: 'O planeta anão mais massivo conhecido e o objeto que, ao ser descoberto em 2005, forçou a astronomia a redefinir o que é um planeta.',
+    stats: [['Diâmetro', '2.326 km'], ['Distância do Sol', '5,7 a 14,6 bilhões km'], ['Ano', '559 anos'], ['Luas', '1 (Disnomia)'], ['Temp.', '-240 °C']],
+    facts: ['É cerca de 27% mais massivo que Plutão.', 'Sua órbita é inclinada 44° em relação ao plano dos planetas.', 'Está tão longe que a luz do Sol leva mais de 9 horas para chegar lá.'],
+    moons: [
+      { id: 'disnomia', name: 'Disnomia', kind: 'Lua de Éris', color: '#6f6a66', km: 700, a: 4, period: 10,
+        about: 'A única lua conhecida de Éris, com cerca de 700 km de diâmetro.',
+        stats: [['Diâmetro', '≈ 700 km'], ['Órbita', '15,8 dias']],
+        facts: ['Seu nome significa "desordem" e é uma referência à filha da deusa Éris.'] },
+    ],
+  },
+  {
+    id: 'halley', name: 'Cometa Halley', kind: 'Cometa', color: '#cfe6ff', km: 11, visualR: 0.12, au: 17.83, ecc: 0.967, years: 75.3, tilt: 2.83, spin: 0.2,
+    about: 'O cometa mais famoso, visível a olho nu a cada 75-76 anos. Sua órbita é muito alongada e retrógrada: gira ao contrário dos planetas. Perto do Sol, o gelo evapora e forma a cauda, que sempre aponta para longe dele.',
+    stats: [['Núcleo', '≈ 15 × 8 km'], ['Período', '75,3 anos'], ['Periélio', '0,59 UA (entre Mercúrio e Vênus)'], ['Afélio', '35 UA (além de Netuno)'], ['Última passagem', '1986'], ['Próxima', '2061']],
+    facts: ['Foi o primeiro cometa cuja volta foi prevista, por Edmond Halley, em 1705.', 'Aparece na Tapeçaria de Bayeux, de 1066.', 'A sonda Giotto passou a 600 km do seu núcleo em 1986.', 'Seu núcleo é mais escuro que carvão.'],
+    moons: [],
   },
 ];
