@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Astora: explore o Sistema Solar em 3D. Arraste, gire e clique nos astros para ver detalhes e curiosidades." />
+    <meta name="theme-color" content="#04060d" />
+    <title>Astora — Sistema Solar em 3D</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%234da3ff'/><circle cx='26' cy='9' r='3' fill='%23ffc857'/></svg>" />
+  </head>
+  <body>
+    <div id="loader"><div class="ring"></div><p>Preparando o Sistema Solar…</p></div>
+    <canvas id="scene" aria-label="Sistema Solar em 3D"></canvas>
+    <div id="labels"></div>
+
+    <header class="brand">
+      <h1>Astora</h1>
+      <p>Arraste para girar · role para aproximar · clique em um astro para ver detalhes e luas</p>
+    </header>
+
+    <aside id="panel" class="panel" aria-live="polite" hidden>
+      <button id="close" class="icon-btn" aria-label="Fechar">×</button>
+      <div class="swatch" id="p-swatch"></div>
+      <span class="kind" id="p-kind"></span>
+      <h2 id="p-name"></h2>
+      <div class="compare" id="p-compare"></div>
+      <nav class="tabs" role="tablist">
+        <button data-tab="about" class="on" role="tab">Sobre</button>
+        <button data-tab="data" role="tab">Dados</button>
+        <button data-tab="facts" role="tab">Curiosidades</button>
+      </nav>
+      <section id="tab-about"></section>
+      <section id="tab-data" hidden></section>
+      <section id="tab-facts" hidden></section>
+      <div class="moons" id="p-moons" hidden></div>
+      <div class="pn">
+        <button id="prev" aria-label="Astro anterior">← <span id="prev-n"></span></button>
+        <button id="next" aria-label="Próximo astro"><span id="next-n"></span> →</button>
+      </div>
+    </aside>
+
+    <footer class="dock">
+      <div id="chips" class="chips"></div>
+      <div class="controls">
+        <button id="home" title="Visão geral">⌂ Visão geral</button>
+        <button id="orbits" class="on" title="Mostrar órbitas">Órbitas</button>
+        <button id="pause" title="Pausar">❚❚</button>
+        <label class="speed">Velocidade
+          <input id="speed" type="range" min="0" max="8" step="0.05" value="1" />
+        </label>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
