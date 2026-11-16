@@ -1,0 +1,217 @@
+// Telescópios e observatórios. Terra com raio de 3 unidades. Os pinos em solo usam latitude/longitude reais
+// (mas a Terra da cena é estilizada, os continentes não coincidem). Órbitas e distâncias dos satélites são
+// ESTILIZADAS (L1/L2 ficam bem mais perto da Terra do que na realidade, a 1,5 milhão de km).
+// type: 'leo' (órbita baixa), 'ellip' (elíptica), 'halo' (ponto de Lagrange), 'trail' (órbita solar), 'ground'.
+const S = 'Telescópios espaciais', G = 'Observatórios em solo', X = 'Aposentados e em construção';
+
+export const telescopes = [
+  // ---------------- Espaço ----------------
+  {
+    id: 'hubble', name: 'Hubble', group: S, kind: 'Telescópio espacial · visível, UV e infravermelho próximo', color: '#9fc4ff',
+    type: 'leo', orbit: { a: 4.0, incl: 0.497, node: 0.3, period: 7 }, model: 'hubble', s: 0.16, size: 'espelho de 2,4 m',
+    about: 'O telescópio espacial mais famoso da história. Orbita acima da atmosfera, que embaça e bloqueia parte da luz, e por isso enxerga com uma nitidez impossível do solo. É o único telescópio que foi consertado por astronautas no espaço.',
+    stats: [['Lançamento', '24 de abril de 1990'], ['Agência', 'NASA / ESA'], ['Espelho', '2,4 m'], ['Luz observada', 'UV, visível e infravermelho próximo'], ['Órbita', '≈ 540 km de altura · 95 min'], ['Situação', 'Ativo']],
+    facts: ['Fez mais de 1,5 milhão de observações e gerou mais de 20.000 artigos científicos.', 'Cinco missões de ônibus espacial o consertaram e atualizaram. Na primeira, em 1993, instalaram "óculos" para corrigir uma falha no espelho.', 'Imagens como o Campo Ultraprofundo mostraram milhares de galáxias em um pedacinho minúsculo do céu.', 'Pesa cerca de 11 toneladas, como dois elefantes grandes.'],
+  },
+  {
+    id: 'jwst', name: 'James Webb', group: S, kind: 'Telescópio espacial · infravermelho', color: '#ffd36b',
+    type: 'halo', orbit: { center: -34, h: 2.4, period: 50 }, model: 'jwst', s: 0.2, size: 'espelho de 6,5 m',
+    about: 'O maior e mais poderoso telescópio espacial já construído. Observa em infravermelho, o que permite ver as primeiras galáxias do universo e através de poeira. Fica em L2, a 1,5 milhão de km da Terra, atrás de um escudo solar do tamanho de uma quadra de tênis.',
+    stats: [['Lançamento', '25 de dezembro de 2021'], ['Agência', 'NASA / ESA / CSA'], ['Espelho', '6,5 m · 18 hexágonos de berílio banhados a ouro'], ['Luz observada', 'Infravermelho (0,6 a 28 µm)'], ['Local', 'Ponto L2 · 1,5 milhão de km'], ['Temperatura', '≈ -233 °C'], ['Situação', 'Ativo']],
+    facts: ['A temperatura do lado frio é cerca de -233 °C, necessária porque ele detecta calor.', 'Seu espelho tem cerca de 6 vezes a área coletora do Hubble.', 'Detectou galáxias que existiam menos de 300 milhões de anos após o Big Bang.', 'A precisão do lançamento economizou combustível: ele pode operar por mais de 20 anos.'],
+  },
+  {
+    id: 'chandra', name: 'Chandra', group: S, kind: 'Telescópio espacial · raios X', color: '#c89bff',
+    type: 'ellip', orbit: { a: 14, ecc: 0.75, incl: 0.9, node: 1.5, period: 26 }, model: 'xray', s: 0.16, size: 'espelhos de 1,2 m',
+    about: 'O principal telescópio de raios X da NASA. Os raios X vêm de locais extremamente quentes e energéticos, como buracos negros, estrelas explodindo e aglomerados de galáxias. Sua órbita muito alongada o leva a 1/3 do caminho até a Lua.',
+    stats: [['Lançamento', '23 de julho de 1999'], ['Agência', 'NASA'], ['Espelhos', '4 pares aninhados'], ['Luz observada', 'Raios X'], ['Órbita', '16.000 a 133.000 km · 64 h'], ['Situação', 'Ativo']],
+    facts: ['Foi batizado em homenagem ao astrofísico Subrahmanyan Chandrasekhar.', 'Suas imagens do Aglomerado da Bala forneceram uma das melhores evidências da matéria escura.', 'Tem resolução tão fina que distinguiria uma moeda a mais de 8 km de distância.'],
+  },
+  {
+    id: 'xmm', name: 'XMM-Newton', group: S, kind: 'Telescópio espacial · raios X', color: '#b58cf0',
+    type: 'ellip', orbit: { a: 12, ecc: 0.72, incl: 0.7, node: 3.5, period: 22 }, model: 'xray', s: 0.16, size: '3 telescópios de 58 espelhos',
+    about: 'O grande telescópio de raios X da ESA. Seus três telescópios com dezenas de espelhos aninhados coletam muito mais luz que o Chandra, ideal para ver objetos fracos e fazer espectros detalhados.',
+    stats: [['Lançamento', '10 de dezembro de 1999'], ['Agência', 'ESA'], ['Espelhos', '3 × 58 camadas'], ['Luz observada', 'Raios X'], ['Órbita', '≈ 48 h, muito elíptica'], ['Situação', 'Ativo']],
+    facts: ['Funciona há mais de 25 anos, muito além dos 2 anos planejados.', 'Ajudou a revelar o gás quente que preenche aglomerados de galáxias.'],
+  },
+  {
+    id: 'fermi', name: 'Fermi', group: S, kind: 'Telescópio espacial · raios gama', color: '#ff7fa8',
+    type: 'leo', orbit: { a: 4.3, incl: 0.447, node: 2.0, period: 6.5 }, model: 'generic', s: 0.16, size: 'detector LAT de 1,8 m',
+    about: 'Observa a luz mais energética do universo: raios gama, produzidos por pulsares, buracos negros em atividade e explosões estelares. Varre o céu inteiro a cada 3 horas.',
+    stats: [['Lançamento', '11 de junho de 2008'], ['Agência', 'NASA'], ['Instrumentos', 'LAT e GBM'], ['Luz observada', 'Raios gama'], ['Órbita', '≈ 550 km · 96 min'], ['Situação', 'Ativo']],
+    facts: ['Descobriu as "Bolhas de Fermi": enormes estruturas de raios gama saindo do centro da Via Láctea.', 'Já detectou milhares de fontes de raios gama.'],
+  },
+  {
+    id: 'swift', name: 'Swift', group: S, kind: 'Telescópio espacial · explosões de raios gama', color: '#ff9fb8',
+    type: 'leo', orbit: { a: 4.1, incl: 0.36, node: 4.0, period: 6 }, model: 'generic', s: 0.15, size: '3 telescópios',
+    about: 'Um caçador de explosões de raios gama (GRBs), as explosões mais brilhantes do universo. Ao detectar uma, gira em segundos para apontar telescópios de raios X e luz visível para o local.',
+    stats: [['Lançamento', '20 de novembro de 2004'], ['Agência', 'NASA'], ['Luz observada', 'Gama, raios X, UV, visível'], ['Órbita', '≈ 600 km · 96 min'], ['Situação', 'Ativo, com órbita decaindo']],
+    facts: ['Pode girar para um novo alvo em menos de 90 segundos.', 'Sua órbita está decaindo e a NASA estuda formas de elevá-la.'],
+  },
+  {
+    id: 'nustar', name: 'NuSTAR', group: S, kind: 'Telescópio espacial · raios X de alta energia', color: '#d6a8ff',
+    type: 'leo', orbit: { a: 4.0, incl: 0.1, node: 5.0, period: 6 }, model: 'xray', s: 0.15, size: 'mastro de 10 m',
+    about: 'O primeiro telescópio capaz de focar raios X de alta energia, o que dá imagens nítidas de buracos negros e de restos de supernovas. Um mastro de 10 m separa os espelhos do detector.',
+    stats: [['Lançamento', '13 de junho de 2012'], ['Agência', 'NASA'], ['Luz observada', 'Raios X duros (3 a 79 keV)'], ['Órbita', '≈ 600 km · quase equatorial'], ['Situação', 'Ativo']],
+    facts: ['Foi lançado por um foguete Pegasus, que sai de dentro de um avião em voo.', 'O mastro se estende no espaço como uma sanfona depois do lançamento.'],
+  },
+  {
+    id: 'tess', name: 'TESS', group: S, kind: 'Telescópio espacial · caçador de exoplanetas', color: '#7fe0a8',
+    type: 'ellip', orbit: { a: 18, ecc: 0.6, incl: 0.6, node: 0.5, period: 30 }, model: 'generic', s: 0.16, size: '4 câmeras de 10,5 cm',
+    about: 'Procura planetas ao redor de estrelas brilhantes vizinhas, medindo o leve escurecimento quando um planeta passa na frente da estrela (trânsito). Sua órbita é a mais estável possível: dá duas voltas por órbita da Lua.',
+    stats: [['Lançamento', '18 de abril de 2018'], ['Agência', 'NASA'], ['Câmeras', '4 de campo amplo'], ['Órbita', '108.000 a 375.000 km · 13,7 dias'], ['Resultados', 'Milhares de candidatos a planeta'], ['Situação', 'Ativo']],
+    facts: ['Varre quase o céu inteiro, em faixas, ao longo de vários anos.', 'Já ajudou a confirmar centenas de exoplanetas.'],
+  },
+  {
+    id: 'spherex', name: 'SPHEREx', group: S, kind: 'Telescópio espacial · mapa do céu em infravermelho', color: '#ffb36b',
+    type: 'leo', orbit: { a: 4.2, incl: 1.71, node: 1.0, period: 8 }, model: 'generic', s: 0.15, size: 'telescópio de 20 cm',
+    about: 'Um telescópio pequeno com uma grande missão: mapear o céu inteiro em 102 "cores" de infravermelho, para entender a inflação do universo e a origem da água nas galáxias.',
+    stats: [['Lançamento', '11 de março de 2025'], ['Agência', 'NASA'], ['Cores', '102 bandas de infravermelho'], ['Órbita', '≈ 650 km · polar'], ['Situação', 'Ativo']],
+    facts: ['Vai mapear o céu todo quatro vezes ao longo de dois anos.', 'Foi lançado junto com o PUNCH, que estuda a coroa do Sol.'],
+  },
+  {
+    id: 'euclid', name: 'Euclid', group: S, kind: 'Telescópio espacial · matéria e energia escuras', color: '#8fe0e0',
+    type: 'halo', orbit: { center: -42, h: 3.0, period: 55 }, model: 'generic', s: 0.18, size: 'espelho de 1,2 m',
+    about: 'Missão da ESA para mapear a estrutura do universo em 3D, observando bilhões de galáxias e medindo como a matéria escura e a energia escura moldaram o cosmo.',
+    stats: [['Lançamento', '1º de julho de 2023'], ['Agência', 'ESA'], ['Espelho', '1,2 m'], ['Luz observada', 'Visível e infravermelho próximo'], ['Local', 'Ponto L2'], ['Situação', 'Ativo']],
+    facts: ['Vai mapear cerca de um terço do céu em 6 anos.', 'Suas primeiras imagens, em 2023, já mostravam milhares de galáxias em um único quadro.'],
+  },
+  {
+    id: 'soho', name: 'SOHO', group: S, kind: 'Observatório solar espacial', color: '#ffc857',
+    type: 'halo', orbit: { center: 28, h: 3, period: 58 }, model: 'generic', s: 0.16, size: '1,8 m de corpo',
+    about: 'Observa o Sol sem parar desde 1996, a partir do ponto L1, entre a Terra e o Sol. Fornece imagens da atmosfera solar e dá alertas de tempestades solares que podem afetar a Terra.',
+    stats: [['Lançamento', '2 de dezembro de 1995'], ['Agência', 'ESA / NASA'], ['Alvo', 'O Sol'], ['Local', 'Ponto L1 · 1,5 milhão de km'], ['Situação', 'Ativo']],
+    facts: ['Já descobriu mais de 5.000 cometas, a maioria raspando o Sol, descobertos até por voluntários.', 'Foi planejado para 2 anos e opera há quase 30.'],
+  },
+
+  // ---------------- Solo ----------------
+  {
+    id: 'alma', name: 'ALMA', group: G, kind: 'Radiotelescópio · interferômetro milimétrico', color: '#ffb35a',
+    type: 'ground', sites: [[-23.02, -67.75]], size: '66 antenas', focusDist: 7,
+    about: 'Um conjunto de 66 antenas no deserto do Atacama, a 5.000 m de altitude, que funcionam como um único telescópio gigante. Enxerga a poeira e o gás frio onde nascem estrelas e planetas.',
+    stats: [['Inauguração', '2013'], ['Local', 'Chajnantor, Chile · 5.000 m'], ['Antenas', '66'], ['Distância máxima entre antenas', '16 km'], ['Luz observada', 'Milimétrica e submilimétrica'], ['Situação', 'Ativo']],
+    facts: ['Fez imagens detalhadas de discos de formação de planetas, com anéis e vãos.', 'É um dos principais participantes do Event Horizon Telescope.'],
+  },
+  {
+    id: 'vlt', name: 'VLT', group: G, kind: 'Telescópio óptico · Very Large Telescope', color: '#ffc27a',
+    type: 'ground', sites: [[-24.63, -70.40]], size: '4 espelhos de 8,2 m', focusDist: 7,
+    about: 'Quatro telescópios de 8,2 m no Monte Paranal, Chile, que podem ser combinados (VLTI) para gerar imagens com a nitidez de um telescópio gigante. É o observatório óptico mais produtivo do mundo.',
+    stats: [['Primeira luz', '1998'], ['Organização', 'ESO'], ['Telescópios', '4 × 8,2 m + 4 auxiliares de 1,8 m'], ['Local', 'Cerro Paranal, Chile · 2.635 m'], ['Situação', 'Ativo']],
+    facts: ['Obteve a primeira imagem direta de um exoplaneta, em 2004.', 'Acompanhou durante décadas a órbita de estrelas ao redor do buraco negro da nossa galáxia.'],
+  },
+  {
+    id: 'keck', name: 'Observatório Keck', group: G, kind: 'Telescópio óptico · 2 × 10 m', color: '#ffd08a',
+    type: 'ground', sites: [[19.826, -155.475]], size: '2 espelhos de 10 m', focusDist: 7,
+    about: 'Dois dos maiores telescópios ópticos do mundo, no cume do Mauna Kea, no Havaí. Cada espelho de 10 m é formado por 36 hexágonos que se ajustam como um mosaico.',
+    stats: [['Primeira luz', '1993 e 1996'], ['Espelhos', '2 × 10 m, 36 segmentos cada'], ['Local', 'Mauna Kea, Havaí · 4.145 m'], ['Situação', 'Ativo']],
+    facts: ['Foi pioneiro dos espelhos segmentados, que depois inspiraram o James Webb.', 'Seus telescópios usam óptica adaptativa, com lasers que criam "estrelas artificiais" para corrigir o tremor da atmosfera.'],
+  },
+  {
+    id: 'gtc', name: 'Gran Telescopio Canarias', group: G, kind: 'Telescópio óptico · 10,4 m', color: '#ffbf80',
+    type: 'ground', sites: [[28.756, -17.892]], size: 'espelho de 10,4 m', focusDist: 7,
+    about: 'O maior telescópio óptico de espelho único (segmentado) em funcionamento, instalado no Observatório do Roque de los Muchachos, nas Ilhas Canárias.',
+    stats: [['Primeira luz', '2007'], ['Espelho', '10,4 m · 36 segmentos'], ['Local', 'La Palma, Espanha · 2.267 m'], ['Situação', 'Ativo']],
+    facts: ['Já ajudou a estudar exoplanetas e galáxias muito distantes.', 'O céu de La Palma é protegido por lei contra poluição luminosa.'],
+  },
+  {
+    id: 'fast', name: 'FAST', group: G, kind: 'Radiotelescópio · prato de 500 m', color: '#ff9f6b',
+    type: 'ground', sites: [[25.653, 106.857]], size: 'prato de 500 m', focusDist: 7,
+    about: 'O maior radiotelescópio de prato único do mundo, instalado em uma depressão natural na China. Seu prato é formado por 4.450 painéis móveis e "escuta" pulsares e hidrogênio de galáxias distantes.',
+    stats: [['Primeira luz', '2016'], ['Prato', '500 m de diâmetro'], ['Local', 'Guizhou, China'], ['Pulsares descobertos', '900+'], ['Situação', 'Ativo']],
+    facts: ['Já descobriu mais de 900 pulsares, a maior parte dos achados dos últimos anos.', 'Seu nome oficial é "Telescópio Esférico de Abertura de Quinhentos Metros".'],
+  },
+  {
+    id: 'rubin', name: 'Observatório Vera C. Rubin', group: G, kind: 'Telescópio óptico · levantamento do céu', color: '#ffd9a0',
+    type: 'ground', sites: [[-30.241, -70.737]], size: 'espelho de 8,4 m · câmera de 3,2 gigapixels', focusDist: 7,
+    about: 'Vai filmar o céu inteiro do hemisfério sul a cada poucas noites durante 10 anos (projeto LSST), criando um "filme" do universo. Possui a maior câmera digital já construída, de 3.200 megapixels.',
+    stats: [['Primeiras imagens', 'Junho de 2025'], ['Espelho', '8,4 m'], ['Câmera', '3,2 gigapixels'], ['Local', 'Cerro Pachón, Chile · 2.700 m'], ['Dados', '≈ 20 TB por noite'], ['Situação', 'Em operação inicial']],
+    facts: ['Deve detectar milhões de asteroides e bilhões de galáxias.', 'Recebeu o nome de Vera Rubin, que forneceu evidências da matéria escura.'],
+  },
+  {
+    id: 'ligo', name: 'LIGO', group: G, kind: 'Observatório de ondas gravitacionais', color: '#ffe08a',
+    type: 'ground', sites: [[46.455, -119.408], [30.563, -90.774]], size: 'braços de 4 km', focusDist: 8,
+    about: 'Dois detectores gigantes nos EUA que medem ondas gravitacionais, ondulações do espaço-tempo causadas por colisões de buracos negros e estrelas de nêutrons. Não é um telescópio de luz, mas "escuta" o universo.',
+    stats: [['Primeira detecção', '14 de setembro de 2015'], ['Locais', 'Hanford (WA) e Livingston (LA)'], ['Braços', '4 km em L'], ['Sensibilidade', 'Mede variações menores que 1/10.000 de um próton'], ['Situação', 'Ativo']],
+    facts: ['A primeira detecção (GW150914) veio da fusão de dois buracos negros a 1,3 bilhão de anos-luz.', 'O projeto rendeu o Nobel de Física de 2017.'],
+  },
+  {
+    id: 'eht', name: 'Event Horizon Telescope', group: G, kind: 'Rede de radiotelescópios · imagens de buracos negros', color: '#ff8a4a',
+    type: 'ground', sites: [[-23.02, -67.75], [37.07, -3.39], [19.82, -155.48], [32.7, -109.9], [18.99, -97.31], [-89.99, 0], [44.63, 5.91], [76.5, -68.7]], size: 'telescópio do tamanho da Terra', focusDist: 10, arcs: true,
+    goto: [{ level: 'galaxy', label: 'Ver Sagitário A*' }, { level: 'universe', label: 'Ver M87*' }],
+    about: 'Não é um aparelho, mas uma rede de radiotelescópios espalhados pelo planeta, que juntos formam um telescópio virtual do tamanho da Terra. Foi assim que obtiveram a primeira imagem de um buraco negro.',
+    stats: [['Imagem de M87*', '10 de abril de 2019'], ['Imagem de Sagitário A*', '12 de maio de 2022'], ['Locais', 'Chile, Espanha, Havaí, Arizona, México, Polo Sul, França, Groenlândia'], ['Técnica', 'Interferometria de base muito longa'], ['Luz observada', '1,3 mm']],
+    facts: ['Os dados de cada estação foram gravados em discos e transportados de avião, de tantos que eram.', 'Usa relógios atômicos para sincronizar as estações com precisão de trilionésimos de segundo.'],
+  },
+  {
+    id: 'gbt', name: 'Green Bank', group: G, kind: 'Radiotelescópio · prato móvel de 100 m', color: '#ffb87a',
+    type: 'ground', sites: [[38.433, -79.84]], size: 'prato de 100 × 110 m', focusDist: 7,
+    about: 'O maior radiotelescópio totalmente móvel do mundo, na Virgínia Ocidental, em uma zona de silêncio de rádio onde celulares e Wi-Fi são restritos.',
+    stats: [['Inauguração', '2000'], ['Prato', '100 × 110 m'], ['Local', 'Green Bank, EUA'], ['Situação', 'Ativo']],
+    facts: ['A "Zona Nacional de Silêncio de Rádio" proíbe até micro-ondas na região.', 'Já participou de buscas por sinais de vida inteligente.'],
+  },
+  {
+    id: 'icecube', name: 'IceCube', group: G, kind: 'Observatório de neutrinos', color: '#9fd8ff',
+    type: 'ground', sites: [[-89.99, 0]], size: '1 km³ de gelo', focusDist: 8,
+    about: 'Mais de 5.000 sensores enterrados no gelo do Polo Sul detectam raros neutrinos de altíssima energia, partículas vindas de explosões e buracos negros distantes.',
+    stats: [['Conclusão', '2010'], ['Sensores', '5.160 módulos ópticos'], ['Volume', '1 km³ de gelo, até 2,5 km de profundidade'], ['Local', 'Polo Sul'], ['Situação', 'Ativo']],
+    facts: ['Em 2018 ligou um neutrino de altíssima energia a um blazar, a primeira fonte provável desse tipo de partícula.', 'O gelo do Polo Sul é tão transparente e limpo que serve como detector gigante.'],
+  },
+
+  // ---------------- Aposentados / em construção ----------------
+  {
+    id: 'gaia', name: 'Gaia', group: X, kind: 'Telescópio espacial · mapa 3D da Via Láctea · aposentado', color: '#ffd9a0',
+    type: 'halo', orbit: { center: -50, h: 3.2, period: 60 }, model: 'generic', s: 0.18, size: 'dois telescópios de 1,45 m',
+    about: 'Mediu a posição, a distância e o movimento de quase 2 bilhões de estrelas para montar o mapa 3D mais preciso da nossa galáxia. Foi desligado em março de 2025 e enviado a uma órbita de descarte ao redor do Sol.',
+    stats: [['Lançamento', '19 de dezembro de 2013'], ['Fim da missão', 'Março de 2025'], ['Agência', 'ESA'], ['Estrelas medidas', '≈ 1,8 bilhão'], ['Local', 'Ponto L2'], ['Situação', 'Aposentado']],
+    facts: ['Descobriu que a Via Láctea está sendo "chacoalhada" por galáxias menores.', 'Sua precisão equivale a enxergar uma moeda de euro na superfície da Lua.'],
+  },
+  {
+    id: 'roman', name: 'Nancy Grace Roman', group: X, kind: 'Telescópio espacial · em construção', color: '#a8e6c0',
+    type: 'halo', orbit: { center: -58, h: 2.5, period: 65 }, model: 'generic', s: 0.2, size: 'espelho de 2,4 m',
+    about: 'Futuro telescópio da NASA com espelho do tamanho do Hubble, mas com campo de visão 100 vezes maior. Vai estudar a energia escura e encontrar milhares de exoplanetas, além de testar um coronógrafo.',
+    stats: [['Lançamento previsto', 'Até 2027'], ['Agência', 'NASA'], ['Espelho', '2,4 m'], ['Campo de visão', '100 × o do Hubble'], ['Local', 'Ponto L2'], ['Situação', 'Em construção']],
+    facts: ['O espelho foi doado pelo Escritório Nacional de Reconhecimento dos EUA, sobra de um programa de satélites.', 'Leva o nome da "mãe do Hubble", primeira chefe de astronomia da NASA.'],
+  },
+  {
+    id: 'spitzer', name: 'Spitzer', group: X, kind: 'Telescópio espacial · infravermelho · aposentado', color: '#ff9f80',
+    type: 'trail', pos: [4, -50, 3], model: 'generic', s: 0.16, size: 'espelho de 85 cm',
+    about: 'Observou o universo em infravermelho de 2003 a 2020, de uma órbita que o afastava lentamente da Terra. Encontrou planetas, poeira e galáxias ocultas aos olhos do Hubble.',
+    stats: [['Lançamento', '25 de agosto de 2003'], ['Fim da missão', '30 de janeiro de 2020'], ['Espelho', '85 cm'], ['Órbita', 'ao redor do Sol, atrás da Terra'], ['Situação', 'Aposentado']],
+    facts: ['Ajudou a confirmar os sete planetas de TRAPPIST-1.', 'Planejado para 2,5 anos, operou mais de 16.'],
+  },
+  {
+    id: 'kepler', name: 'Kepler', group: X, kind: 'Telescópio espacial · caçador de exoplanetas · aposentado', color: '#8fe8b0',
+    type: 'trail', pos: [7, -60, -4], model: 'generic', s: 0.16, size: 'espelho de 1,4 m',
+    about: 'Mudou nossa visão do cosmo ao mostrar que planetas são comuns. Ficou olhando fixo para um pedaço do céu, medindo o brilho de 150.000 estrelas, e encontrou milhares de mundos.',
+    stats: [['Lançamento', '7 de março de 2009'], ['Fim da missão', '30 de outubro de 2018'], ['Exoplanetas confirmados', '≈ 2.700'], ['Situação', 'Aposentado']],
+    facts: ['Mostrou que, em média, toda estrela da Via Láctea tem pelo menos um planeta.', 'Terminou quando o combustível acabou, depois de 9 anos de trabalho.'],
+  },
+  {
+    id: 'herschel', name: 'Herschel', group: X, kind: 'Telescópio espacial · infravermelho distante · aposentado', color: '#e0a8a0',
+    type: 'trail', pos: [-12, 52, 5], model: 'generic', s: 0.18, size: 'espelho de 3,5 m',
+    about: 'O maior telescópio espacial de infravermelho distante já lançado, que estudou onde e como nascem estrelas e galáxias. Funcionou de 2009 a 2013, até acabar o hélio líquido que o refrigerava.',
+    stats: [['Lançamento', '14 de maio de 2009'], ['Fim da missão', '2013'], ['Agência', 'ESA'], ['Espelho', '3,5 m'], ['Situação', 'Aposentado']],
+    facts: ['Tinha um espelho maior que o do Hubble, mas era feito de carbeto de silício, muito leve.', 'Foi lançado junto com o satélite Planck.'],
+  },
+  {
+    id: 'elt', name: 'Extremely Large Telescope', group: X, kind: 'Telescópio óptico · em construção', color: '#ffe0a0',
+    type: 'ground', sites: [[-24.589, -70.192]], size: 'espelho de 39 m', focusDist: 7,
+    about: 'Será o maior telescópio óptico do mundo, com um espelho de 39 m formado por 798 segmentos hexagonais. Poderá fotografar exoplanetas e procurar sinais de vida em suas atmosferas.',
+    stats: [['Primeira luz prevista', 'Fim desta década'], ['Organização', 'ESO'], ['Espelho', '39 m · 798 segmentos'], ['Local', 'Cerro Armazones, Chile'], ['Situação', 'Em construção']],
+    facts: ['Terá um espelho com quase 4 vezes o diâmetro dos maiores atuais.', 'Sua cúpula terá 86 m de diâmetro.'],
+  },
+  {
+    id: 'ska', name: 'SKA', group: X, kind: 'Radiotelescópio · Square Kilometre Array · em construção', color: '#ffb06a',
+    type: 'ground', sites: [[-30.72, 21.41], [-26.7, 116.66]], size: '131.000 antenas + 197 pratos', focusDist: 9,
+    about: 'Será o maior radiotelescópio do planeta, com dois conjuntos de antenas: milhares de antenas baixas na Austrália e centenas de pratos na África do Sul. Poderá estudar a "Idade das Trevas" do universo.',
+    stats: [['Obras iniciadas', '2021'], ['SKA-Baixo', '131.072 antenas · Austrália'], ['SKA-Médio', '197 pratos · África do Sul'], ['Primeira imagem (SKA-Baixo)', '2025'], ['Situação', 'Em construção']],
+    facts: ['Vai gerar centenas de petabytes de dados por ano.', 'Participam mais de 10 países, e o projeto envolve milhares de pessoas.'],
+  },
+  {
+    id: 'arecibo', name: 'Arecibo', group: X, kind: 'Radiotelescópio · prato de 305 m · destruído', color: '#c8b49a',
+    type: 'ground', sites: [[18.344, -66.753]], size: 'prato de 305 m', focusDist: 7,
+    about: 'Foi por 53 anos o maior radiotelescópio do mundo, em Porto Rico. Em 1974, enviou ao espaço a famosa Mensagem de Arecibo. Colapsou em 1º de dezembro de 2020, após cabos se romperem.',
+    stats: [['Inauguração', '1963'], ['Colapso', '1º de dezembro de 2020'], ['Prato', '305 m'], ['Local', 'Porto Rico'], ['Situação', 'Destruído']],
+    facts: ['Apareceu no filme "007 Contra GoldenEye" e em "Contato".', 'Descobriu o primeiro pulsar em um sistema binário, o que rendeu o Nobel de 1993.'],
+  },
+];

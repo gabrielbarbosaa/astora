@@ -7,6 +7,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import './style.css';
 import { initUI } from './ui.js';
 import { setPxScale } from './engine/helpers.js';
+import { buildTelescopes } from './levels/telescopes.js';
 import { buildSolar } from './levels/solar.js';
 import { buildStars } from './levels/stars.js';
 import { buildGalaxy } from './levels/galaxy.js';
@@ -57,12 +58,13 @@ scene.add(new THREE.AmbientLight(0x8793b8, 0.4));
 
 // ---- Níveis ---------------------------------------------------------------
 const levelsMeta = [
+  { id: 'telescopes', name: 'Telescópios' },
   { id: 'solar', name: 'Sistema Solar' },
   { id: 'stars', name: 'Vizinhança Estelar' },
   { id: 'galaxy', name: 'Via Láctea' },
   { id: 'universe', name: 'Grupo Local' },
 ];
-const builders = { solar: buildSolar, stars: buildStars, galaxy: () => buildGalaxy({ isMobile }), universe: () => buildUniverse({ isMobile }) };
+const builders = { telescopes: buildTelescopes, solar: buildSolar, stars: buildStars, galaxy: () => buildGalaxy({ isMobile }), universe: () => buildUniverse({ isMobile }) };
 const levels = {};
 let level = null;
 const labelsEl = document.getElementById('labels');
@@ -218,9 +220,9 @@ renderer.setAnimationLoop(() => {
     if (hidden) { e.label.style.display = 'none'; continue; }
     e.mesh.getWorldPosition(tmp);
     const dist = camera.position.distanceTo(tmp);
-    if (e.marker) e.marker.visible = dist > (e.markerDist ?? e.R * 45);
+    if (e.marker) e.marker.visible = dist > (e.markerDist ?? e.R * 45) && dist < (e.markerMax ?? Infinity);
     tmp.project(camera);
-    const vis = tmp.z < 1 && Math.abs(tmp.x) < 1.05 && Math.abs(tmp.y) < 1.05 && dist > e.R * 1.8;
+    const vis = tmp.z < 1 && Math.abs(tmp.x) < 1.05 && Math.abs(tmp.y) < 1.05 && dist > e.R * 1.8 && dist < (e.labelMax ?? Infinity);
     e.label.style.display = vis ? '' : 'none';
     if (vis) {
       const px = (tmp.x * 0.5 + 0.5) * innerWidth, py = (-tmp.y * 0.5 + 0.5) * innerHeight;

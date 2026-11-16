@@ -28,9 +28,10 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
   function renderList() {
     const q = norm(search.value.trim());
     const hit = (b) => norm(`${b.name} ${b.kind}`).includes(q);
-    let html = '';
+    let html = '', grp = null;
     for (const b of list) {
       const sats = b.moons ?? [];
+      if (!q && b.group && b.group !== grp) { grp = b.group; html += `<h4 class="grp">${grp}</h4>`; }
       if (!q) html += row(b) + sats.map((m) => row(m, true)).join('');
       else html += (hit(b) ? row(b) : '') + sats.filter(hit).map((m) => row(m, true)).join('');
     }

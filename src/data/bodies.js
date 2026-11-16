@@ -26,6 +26,7 @@ export const bodies = [
   },
   {
     id: 'terra', name: 'Terra', kind: 'Planeta', color: '#4da3ff', km: 12742, au: 1, years: 1, tilt: 0, spin: 0.15, axisTilt: 0.41,
+    goto: { level: 'telescopes', label: 'Ver os telescópios ao redor da Terra' },
     about: 'O nosso lar e o único mundo conhecido com vida. Cerca de 71% da superfície é coberta por água líquida, e a atmosfera rica em nitrogênio e oxigênio nos protege da radiação solar.',
     stats: [['Diâmetro', '12.742 km'], ['Distância do Sol', '149,6 milhões km'], ['Ano', '365,25 dias'], ['Dia', '24 horas'], ['Luas', '1'], ['Temp. média', '15 °C']],
     facts: ['A Terra não é uma esfera perfeita: é levemente achatada nos polos.', 'Cerca de 99% das espécies que já viveram aqui estão extintas.', 'A Lua se afasta cerca de 3,8 cm por ano.', 'Seu campo magnético desvia o vento solar e cria as auroras.'],
