@@ -5,9 +5,9 @@ const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: n < 10 ? 2
 
 export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause, onSpeed, onOrbits }) {
   const panel = $('#panel');
-  const chips = $('#chips');
   const levelsNav = $('#levels');
-  let chipEls = {}, list = [], levelId = null;
+  const drawer = $('#drawer'), search = $('#search'), listEl = $('#list'), exploreBtn = $('#explore');
+  let list = [], levelId = null, activeId = null;
   let currentPlanet = null;
 
   // seletor de escala
@@ -20,17 +20,40 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
     levelBtns[l.id] = b;
   });
 
-  function buildChips() {
-    chips.innerHTML = ''; chipEls = {};
+  // ---- Gaveta "Explorar": lista com busca (inclui luas e planetas das estrelas) ----
+  const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const row = (b, sub = false) =>
+    `<button class="row${sub ? ' sub' : ''}${b.id === activeId ? ' on' : ''}" data-id="${b.id}"><i style="background:${b.color};color:${b.color}"></i><span class="nm">${b.name}</span><em>${b.kind}</em></button>`;
+
+  function renderList() {
+    const q = norm(search.value.trim());
+    const hit = (b) => norm(`${b.name} ${b.kind}`).includes(q);
+    let html = '';
     for (const b of list) {
-      const el = document.createElement('button');
-      el.className = 'chip';
-      el.innerHTML = `<i style="background:${b.color}"></i>${b.name}`;
-      el.onclick = () => onSelect(b.id);
-      chips.appendChild(el);
-      chipEls[b.id] = el;
+      const sats = b.moons ?? [];
+      if (!q) html += row(b) + sats.map((m) => row(m, true)).join('');
+      else html += (hit(b) ? row(b) : '') + sats.filter(hit).map((m) => row(m, true)).join('');
     }
+    listEl.innerHTML = html || '<p class="empty">Nada encontrado</p>';
   }
+  listEl.onclick = (e) => {
+    const r = e.target.closest('.row');
+    if (!r) return;
+    onSelect(r.dataset.id);
+    if (innerWidth <= 720) toggleDrawer(false);
+  };
+  function toggleDrawer(open = drawer.hidden) {
+    drawer.hidden = !open;
+    exploreBtn.setAttribute('aria-expanded', String(open));
+    if (open) { renderList(); search.focus({ preventScroll: true }); listEl.querySelector('.row.on')?.scrollIntoView({ block: 'center' }); }
+    else search.blur();
+  }
+  exploreBtn.onclick = () => toggleDrawer();
+  search.oninput = renderList;
+  search.onkeydown = (e) => {
+    if (e.key === 'Enter') { const r = listEl.querySelector('.row'); if (r) { onSelect(r.dataset.id); if (innerWidth <= 720) toggleDrawer(false); } }
+    if (e.key === 'Escape') { e.stopPropagation(); toggleDrawer(false); }
+  };
 
   const tab = (name) => {
     for (const t of ['about', 'data', 'facts']) $(`#tab-${t}`).hidden = t !== name;
@@ -56,7 +79,9 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
   orb.onclick = () => { orb.classList.toggle('on'); onOrbits(orb.classList.contains('on')); };
 
   addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') onSelect(null);
+    if (e.target === search) return; // digitando na busca: não dispara atalhos
+    if (e.key === '/' || (e.key === 'k' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); toggleDrawer(true); return; }
+    if (e.key === 'Escape') { if (!drawer.hidden) toggleDrawer(false); else onSelect(null); }
     if (e.key === ' ') { e.preventDefault(); pause.click(); }
     if (e.key === 'ArrowRight') step(1);
     if (e.key === 'ArrowLeft') step(-1);
@@ -99,9 +124,14 @@ export function initUI({ levelsMeta, onLevel, onGoto, onSelect, onHome, onPause,
       levelId = id; list = newList;
       for (const k in levelBtns) levelBtns[k].classList.toggle('on', k === id);
       orb.style.display = id === 'solar' ? '' : 'none';
-      buildChips();
+      search.value = '';
+      renderList();
     },
-    setActive(id) { for (const k in chipEls) chipEls[k].classList.toggle('on', k === id); },
+    setActive(id) {
+      activeId = id;
+      listEl.querySelectorAll('.row').forEach((r) => r.classList.toggle('on', r.dataset.id === id));
+      if (!drawer.hidden) listEl.querySelector('.row.on')?.scrollIntoView({ block: 'nearest' });
+    },
     show(b, parent) {
       panel.hidden = !b;
       if (!b) { currentPlanet = null; return; }

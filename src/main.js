@@ -16,6 +16,8 @@ const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping; // comprime realces: planetas e galáxias não "estouram"
+renderer.toneMappingExposure = 0.9;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x02030a);
@@ -33,7 +35,7 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.9, 0.6, 0.92);
 if (!isMobile) composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
-scene.add(new THREE.AmbientLight(0x8793b8, 0.6));
+scene.add(new THREE.AmbientLight(0x8793b8, 0.4));
 
 // Estrelas de fundo: um único Points, comum a todos os níveis
 {
@@ -99,7 +101,7 @@ function select(id) {
     desiredDist = null; controls.minDistance = level.minDist; homeAnim = true;
   }
   ui.show(focus ? focus.data : null, focus?.parent?.data);
-  ui.setActive(planet ? planet.data.id : null);
+  ui.setActive(focus ? focus.data.id : null);
 }
 
 const fadeEl = document.getElementById('fade');

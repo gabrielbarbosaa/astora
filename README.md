@@ -9,7 +9,7 @@ Explorador 3D do Universo em quatro escalas. Arraste para girar, role (ou pince)
 | **Via Láctea** | Galáxia em ~60 mil partículas, Sol, nebulosas, pulsar, **Sagitário A\*** e Cygnus X-1 (buracos negros com disco e lente gravitacional em shader) |
 | **Grupo Local** | Andrômeda, Triângulo, Nuvens de Magalhães, M81, Centaurus A, M51, Sombreiro e **M87\*** com jato |
 
-Atalhos: `1`–`4` trocam de escala, `←`/`→` astro anterior/próximo, `Espaço` pausa, `Esc` volta à visão geral.
+Atalhos: `/` (ou `Ctrl+K`) abre a busca "Explorar", `1`–`4` trocam de escala, `←`/`→` astro anterior/próximo, `Espaço` pausa, `Esc` volta à visão geral.
 
 ## Rodar
 

@@ -105,7 +105,7 @@ export function buildSolar() {
     for (const rg of d.rings ?? []) tiltG.add(makeRing(R, rg));
 
     if (d.star) {
-      mesh.add(new THREE.PointLight(0xfff1dd, 4.5, 0, 0));
+      mesh.add(new THREE.PointLight(0xfff1dd, 2.6, 0, 0));
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
       glow.scale.setScalar(3.6);
       mesh.add(glow);

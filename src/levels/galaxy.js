@@ -20,13 +20,13 @@ export function buildGalaxy({ isMobile }) {
 
   // A galáxia: ~4 braços, bojo central e halo de brilho
   const n = isMobile ? 22000 : 60000;
-  const stars = new THREE.Points(galaxyGeometry({ n, radius: 500, arms: 4, twist: 3.1, thick: 0.035, bulge: 0.22, sizeBase: 1.5 }), pointsMaterial({ minPx: 1, maxPx: 10, alpha: 0.38 }));
+  const stars = new THREE.Points(galaxyGeometry({ n, radius: 500, arms: 4, twist: 3.1, thick: 0.035, bulge: 0.22, sizeBase: 1.5 }), pointsMaterial({ minPx: 1, maxPx: 8, alpha: 0.3 }));
   stars.frustumCulled = false;
   group.add(stars);
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('255,205,140'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.3 }));
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('255,205,140'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.18 }));
   halo.scale.setScalar(260);
   group.add(halo);
-  const haloOuter = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('140,170,255'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.12 }));
+  const haloOuter = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('140,170,255'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.07 }));
   haloOuter.scale.setScalar(1100);
   group.add(haloOuter);
 
@@ -78,8 +78,8 @@ export function buildGalaxy({ isMobile }) {
       group.rotation.y += k * 0.004; // a galáxia gira devagar, levando tudo junto
       // perto do centro as partículas se acumulam: reduz o brilho para o buraco negro aparecer
       const near = THREE.MathUtils.clamp(camera.position.length() / 450, 0.1, 1);
-      stars.material.uniforms.uAlpha.value = 0.38 * near;
-      halo.material.opacity = 0.3 * near;
+      stars.material.uniforms.uAlpha.value = 0.3 * near;
+      halo.material.opacity = 0.18 * near;
       for (const bh of blackHoles) updateBlackHole(bh, camera, elapsed);
     },
   };

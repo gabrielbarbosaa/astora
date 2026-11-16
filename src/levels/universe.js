@@ -30,11 +30,11 @@ export function buildUniverse({ isMobile }) {
     const n = Math.round((isMobile ? 0.4 : 1) * (d.R > 15 ? 5000 : d.R > 8 ? 3200 : 1800));
     const pts = new THREE.Points(
       galaxyGeometry({ n, radius: d.R, type: d.type, arms: 2, twist: 3.6, thick: d.type === 'lenticular' ? 0.1 : 0.05, bulge: d.type === 'lenticular' ? 0.5 : 0.25, sizeBase: d.R * 0.06, ...COLORS[d.type] }),
-      pointsMaterial({ minPx: 1.3, maxPx: 10, alpha: 0.6 }),
+      pointsMaterial({ minPx: 1.3, maxPx: 8, alpha: 0.4 }),
     );
     pts.frustumCulled = false;
     body.add(pts); spinners.push(pts);
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('255,230,190'), color: d.color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.22 }));
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('255,230,190'), color: d.color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.11 }));
     glow.scale.setScalar(d.R * 1.5);
     holder.add(glow);
 

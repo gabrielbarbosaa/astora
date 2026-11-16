@@ -20,6 +20,13 @@
       <p>Arraste para girar · role para aproximar · clique em um astro para ver detalhes e luas</p>
     </header>
 
+    <aside id="drawer" class="drawer" aria-label="Explorar astros" hidden>
+      <div class="search">
+        <input id="search" type="search" placeholder="Buscar planeta, estrela, galáxia…" autocomplete="off" spellcheck="false" />
+      </div>
+      <div id="list" class="list"></div>
+    </aside>
+
     <aside id="panel" class="panel" aria-live="polite" hidden>
       <button id="close" class="icon-btn" aria-label="Fechar">×</button>
       <div class="swatch" id="p-swatch"></div>
@@ -43,7 +50,10 @@
     </aside>
 
     <footer class="dock">
-      <div id="chips" class="chips"></div>
+      <button id="explore" class="explore" aria-expanded="false" aria-controls="drawer">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        Explorar <kbd>/</kbd>
+      </button>
       <div class="controls">
         <button id="home" title="Visão geral">⌂ Visão geral</button>
         <button id="orbits" class="on" title="Mostrar órbitas">Órbitas</button>
